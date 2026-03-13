@@ -527,10 +527,12 @@ function mdBlockToHtml(rawText) {
     if (/^## /.test(line))  { flushList(); html += '<h3 class="plan-h2">'  + mdInline(line.replace(/^## /,''))   + '</h3>'; continue; }
     if (/^### /.test(line)) { flushList(); html += '<h4 class="plan-h3">'  + mdInline(line.replace(/^### /,''))  + '</h4>'; continue; }
     if (/^#{4,} /.test(line)){ flushList(); html += '<p class="plan-content"><strong>' + mdInline(line.replace(/^#{4,} /,'')) + '</strong></p>'; continue; }
-    if (/^---+$/.test(trimmed)) { flushList(); html += '<hr class="plan-hr">'; continue; }
-    var ulM = trimmed.match(/^[*\-] (.+)/);
+    // HR: --- or ⸻ or — or similar dividers
+    if (/^[-—–⸻─―]{2,}$/.test(trimmed)) { flushList(); html += '<hr class="plan-hr">'; continue; }
+    // Bullet: -, *, or • (ChatGPT uses 	•	Item)
+    var ulM = trimmed.match(/^[*\-\u2022]\s+(.+)/);
     if (ulM) { if (listType !== 'ul') { flushList(); listType = 'ul'; } listItems.push(ulM[1]); continue; }
-    var olM = trimmed.match(/^\d+\. (.+)/);
+    var olM = trimmed.match(/^\d+[.)]\s+(.+)/);
     if (olM) { if (listType !== 'ol') { flushList(); listType = 'ol'; } listItems.push(olM[1]); continue; }
     if (!trimmed) { flushList(); continue; }
     flushList();
@@ -545,17 +547,21 @@ function renderPlan() {
   var raw = R('md-input').value.trim();
   if (!raw) { showToast('\u26a0\ufe0f Bitte zuerst Text einf\u00fcgen.'); return; }
 
-  var parts    = ('\n' + raw).split(/\n(?=# (?!#))/);
+  // Split on: # Heading  OR  N) Title at line start
+  var parts    = ('\n' + raw).split(/\n(?=# (?!#)|\d+\) \S)/);
   var sections = [];
   parts.forEach(function(part) {
     var tp = part.trimStart();
     if (!tp) return;
     var nl = tp.indexOf('\n');
-    if (nl === -1) sections.push({ title: tp.replace(/^# /,'').trim(), body: '' });
-    else           sections.push({ title: tp.slice(0,nl).replace(/^# /,'').trim(), body: tp.slice(nl+1) });
+    var rawTitle = nl === -1 ? tp : tp.slice(0, nl);
+    var body     = nl === -1 ? '' : tp.slice(nl + 1);
+    // Strip leading # or keep as-is for N) style
+    var title = rawTitle.replace(/^#+ /,'').trim();
+    sections.push({ title: title, body: body });
   });
 
-  if (!sections.length) { showToast('\u26a0\ufe0f Kein Markdown mit # Abschnitten gefunden.'); return; }
+  if (!sections.length) { showToast('\u26a0\ufe0f Kein Markdown-Text mit Abschnitten gefunden.'); return; }
 
   R('plan-output').innerHTML = sections.map(function(sec, idx) {
     var numM  = sec.title.match(/^(\d+)\)/);
