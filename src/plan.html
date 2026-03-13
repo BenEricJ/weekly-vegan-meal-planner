@@ -557,6 +557,10 @@ function mdBlockToHtml(rawText) {
     if (/^## /.test(line))   { flushAll(); html += '<h3 class="plan-h2">'  + mdInline(line.replace(/^## /,''))   + '</h3>'; continue; }
     if (/^### /.test(line))  { flushAll(); html += '<h4 class="plan-h3">'  + mdInline(line.replace(/^### /,''))  + '</h4>'; continue; }
     if (/^#{4,} /.test(line)){ flushAll(); html += '<p class="plan-content"><strong>' + mdInline(line.replace(/^#{4,} /,'')) + '</strong></p>'; continue; }
+    // Sub-heading: "Template A: ..." or single-letter sub-sections "A) ..."
+    if (/^Template\s+\S/i.test(trimmed) || /^[A-Z]\)\s+\S/.test(trimmed)) {
+      flushAll(); html += '<h3 class="plan-h2">' + mdInline(trimmed) + '</h3>'; continue;
+    }
     // HR: ---, ⸻ (U+2E3B), — etc. – allow single character
     if (/^[-\u2014\u2013\u2E3B\u2500\u2015]+$/.test(trimmed)) { flushAll(); html += '<hr class="plan-hr">'; continue; }
     // Bullet: -, *, or •
@@ -577,9 +581,11 @@ function renderPlan() {
   var raw = R('md-input').value.trim();
   if (!raw) { showToast('\u26a0\ufe0f Bitte zuerst Text einf\u00fcgen.'); return; }
 
-  // Pre-process: ⸻ (U+2E3B) or lone em-dash line followed by a plain unnumbered heading → convert to # heading
+  // Pre-process: ⸻ or lone em-dash line followed by a plain unnumbered heading → convert to # heading
+  // Excluded: "Template X:" sub-templates, "A) ..." single-letter sub-sections
   raw = raw.replace(/[\u2E3B\u2014\u2013]+[ \t]*\n([ \t]*\n)*([A-Z\u00C4\u00D6\u00DC][^\n\t]{2,80})/g, function(m, blanks, title) {
-    if (!/^[\d*\-\u2022|#]/.test(title) && title.indexOf('\t') === -1)
+    var isSubHeader = /^Template\s/i.test(title) || /^[A-Z]\)\s/.test(title);
+    if (!isSubHeader && !/^[\d*\-\u2022|#]/.test(title) && title.indexOf('\t') === -1)
       return '\n# ' + title;
     return m;
   });
