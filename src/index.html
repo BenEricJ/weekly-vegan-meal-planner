@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🌱 Weekly Vegan Meal Planner</title>
+  <title>🌱 Weeknary</title>
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Meal Planner" />
+  <meta name="apple-mobile-web-app-title" content="Weeknary" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <style>
     /* ── Reset & Base ────────────────────────────────────────────── */
@@ -382,7 +382,7 @@
 <header>
   <div class="logo">🌱</div>
   <div>
-    <h1>Weekly Vegan Meal Planner</h1>
+    <h1>Weeknary</h1>
     <p>Felder ausfüllen &rarr; Prompt generieren <em>oder</em> direkt via ChatGPT-API antworten lassen. Einstellungen werden automatisch gespeichert.</p>
   </div>
 </header>
@@ -943,7 +943,7 @@
       <span style="margin-left:auto;display:flex;gap:.35rem;align-items:center">
         <button class="btn-small" onclick="event.stopPropagation(); exportAllDataJSON()">⬇️ JSON</button>
         <button class="btn-small" onclick="event.stopPropagation(); R('all-data-import-file').click()">⬆️ JSON</button>
-        <input type="file" id="all-data-import-file" accept=".json" style="display:none" onchange="handleAllDataImport(this)">
+        <input type="file" id="all-data-import-file" accept=".json" style="display:none" onchange="handleAllDataImport(this)" onclick="event.stopPropagation()">
         <span class="toggle">▾</span>
       </span>
     </div>
@@ -1188,7 +1188,7 @@ const CHECKBOX_GROUPS = ['training_days','office_days','togo_days',
 /* ─────────────────────────────────────────────────────────────────
    Embedded system prompt (rules for the API call)
 ──────────────────────────────────────────────────────────────────*/
-const SYSTEM_PROMPT = `Du bist ein "Weekly Vegan Meal Planner Agent" für Deutschland. Erstelle einen wöchentlichen veganen Essensplan der auf die Nutzereingaben optimiert ist. Befolge ALLE folgenden Regeln. Fehlende Eingaben: Defaults verwenden, Annahmen markieren, fortfahren. Nur Rückfragen wenn Eingaben widersprüchlich sind.
+const SYSTEM_PROMPT = `Du bist ein "Weeknary Agent" für Deutschland. Erstelle einen wöchentlichen veganen Essensplan der auf die Nutzereingaben optimiert ist. Befolge ALLE folgenden Regeln. Fehlende Eingaben: Defaults verwenden, Annahmen markieren, fortfahren. Nur Rückfragen wenn Eingaben widersprüchlich sind.
 
 SPRACHE & FORMAT: Deutsch. Copy/paste-freundlich für NotebookLM.
 
@@ -1817,11 +1817,11 @@ function handleAllDataImport(input) {
     try {
       const data = JSON.parse(e.target.result);
       let imported = 0;
-      if (Array.isArray(data.receipt))      { const m = deduplicateDb([...loadReceiptDb(),      ...data.receipt]);      saveReceiptDb(m);           initReceiptSection();       imported += data.receipt.length; }
-      if (Array.isArray(data.tracking))     { const m = deduplicateDb([...loadTrackingDb(),     ...data.tracking]);     saveTrackingDb(m);          initTrackingSection();      imported += data.tracking.length; }
-      if (Array.isArray(data.products))     { const m = deduplicateDb([...loadProductsDb(),     ...data.products]);     saveProductsDb(m);          initProductsSection();      imported += data.products.length; }
-      if (Array.isArray(data.orders))       { const m = deduplicateDb([...loadOrdersDb(),       ...data.orders]);       saveOrdersDb(m);            initOrdersSection();        imported += data.orders.length; }
-      if (Array.isArray(data.trainingdata)) { const m = deduplicateDb([...loadTrainingDataDb(), ...data.trainingdata]); saveTrainingDataDb(m);      initTrainingDataSection();  imported += data.trainingdata.length; }
+      if (Array.isArray(data.receipt))      { saveReceiptDb([...loadReceiptDb(),           ...data.receipt]);      initReceiptSection();       imported += data.receipt.length; }
+      if (Array.isArray(data.tracking))     { saveTrackingDb([...loadTrackingDb(),        ...data.tracking]);     initTrackingSection();      imported += data.tracking.length; }
+      if (Array.isArray(data.products))     { saveProductsDb([...loadProductsDb(),        ...data.products]);     initProductsSection();      imported += data.products.length; }
+      if (Array.isArray(data.orders))       { saveOrdersDb([...loadOrdersDb(),            ...data.orders]);       initOrdersSection();        imported += data.orders.length; }
+      if (Array.isArray(data.trainingdata)) { saveTrainingDataDb([...loadTrainingDataDb(),...data.trainingdata]); initTrainingDataSection();  imported += data.trainingdata.length; }
       showToast(`✅ ${imported} Einträge importiert`);
     } catch(err) {
       showToast('❌ Import fehlgeschlagen: ' + err.message);

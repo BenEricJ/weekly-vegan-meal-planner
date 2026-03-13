@@ -1,7 +1,7 @@
 ﻿{
   "name": "weekly-vegan-meal-planner",
   "version": "1.0.0",
-  "description": "Weekly Vegan Meal Planner  iOS & Android App via Capacitor",
+  "description": "Weeknary – Weekly Vegan Meal Planner iOS & Android App via Capacitor",
   "scripts": {
     "sync": "npx cap sync",
     "open:ios": "npx cap open ios",

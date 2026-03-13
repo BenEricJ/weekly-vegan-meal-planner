@@ -1,6 +1,6 @@
 {
-  "name": "Weekly Vegan Meal Planner",
-  "short_name": "Meal Planner",
+  "name": "Weeknary",
+  "short_name": "Weeknary",
   "description": "Wöchentlicher veganer Essensplan – optimiert auf deine Ziele",
   "start_url": ".",
   "display": "standalone",
