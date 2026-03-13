@@ -1,0 +1,3032 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌱 Weekly Vegan Meal Planner</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2d6a4f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Meal Planner" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    /* ── Reset & Base ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green-dark:  #2d6a4f;
+      --green:       #40916c;
+      --green-light: #74c69d;
+      --green-pale:  #d8f3dc;
+      --green-bg:    #f0faf4;
+      --amber:       #f4a261;
+      --amber-light: #fde8d4;
+      --text:        #1b4332;
+      --text-muted:  #52796f;
+      --border:      #b7d8c5;
+      --white:       #ffffff;
+      --shadow:      0 2px 10px rgba(45,106,79,.10);
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--green-bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: white;
+      padding: 1.5rem 2rem;
+      display: flex; align-items: center; gap: 1rem;
+      box-shadow: 0 3px 12px rgba(0,0,0,.15);
+    }
+    header .logo { font-size: 2.2rem; }
+    header h1  { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+    header p   { font-size: .85rem; opacity: .85; margin-top: .2rem; }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .container {
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+    }
+
+    /* ── Cards ───────────────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-header {
+      background: var(--green-pale);
+      padding: .75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card-header:hover { background: #c7ead4; }
+    .card-header h2 { font-size: 1rem; font-weight: 600; color: var(--green-dark); display: flex; align-items: center; gap: .5rem; }
+    .card-header .toggle { font-size: 1.1rem; transition: transform .2s; }
+    .card-header.collapsed .toggle { transform: rotate(-90deg); }
+    .card-body { padding: 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: .85rem 1.2rem; }
+    .card-body.single-col { grid-template-columns: 1fr; }
+    .card-body.triple-col { grid-template-columns: 1fr 1fr 1fr; }
+    .card-body.collapsed { display: none; }
+
+    /* ── Form Elements ───────────────────────────────────────────── */
+    .field { display: flex; flex-direction: column; gap: .3rem; }
+    .field.full-width { grid-column: 1 / -1; }
+    label { font-size: .82rem; font-weight: 600; color: var(--text-muted); }
+    label .hint { font-weight: 400; opacity: .7; font-size: .77rem; }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      padding: .45rem .65rem;
+      font-size: .9rem;
+      color: var(--text);
+      background: #fafffe;
+      transition: border-color .15s, box-shadow .15s;
+      width: 100%;
+    }
+    input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button { opacity: 1; }
+    textarea { resize: vertical; min-height: 70px; font-family: inherit; }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(64,145,108,.18);
+    }
+
+    /* Checkboxes / Radios */
+    .check-group { display: flex; flex-wrap: wrap; gap: .4rem .75rem; padding-top: .1rem; }
+    .check-group label {
+      display: flex; align-items: center; gap: .35rem;
+      font-weight: 500; font-size: .85rem; color: var(--text);
+      cursor: pointer;
+      background: var(--green-pale); border: 1px solid var(--border);
+      border-radius: 20px; padding: .25rem .7rem;
+      transition: background .12s, border-color .12s;
+    }
+    .check-group label:hover { background: #c7ead4; }
+    .check-group input[type="checkbox"],
+    .check-group input[type="radio"] { accent-color: var(--green); width: 14px; height: 14px; }
+    .check-group label.checked { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+
+    .radio-row { display: flex; flex-wrap: wrap; gap: .4rem .75rem; }
+    .radio-row label {
+      display: flex; align-items: center; gap: .35rem;
+      font-weight: 500; font-size: .85rem; cursor: pointer;
+      background: var(--green-pale); border: 1px solid var(--border);
+      border-radius: 20px; padding: .25rem .75rem;
+      transition: background .12s;
+    }
+    .radio-row label:hover { background: #c7ead4; }
+    .radio-row input { accent-color: var(--green); }
+
+    /* Tags input */
+    .tags-container {
+      border: 1.5px solid var(--border); border-radius: 7px;
+      padding: .35rem .5rem; min-height: 42px;
+      background: #fafffe; display: flex; flex-wrap: wrap; gap: .3rem;
+      cursor: text;
+    }
+    .tags-container:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px rgba(64,145,108,.18); }
+    .tag {
+      background: var(--green-light); color: var(--green-dark);
+      border-radius: 20px; padding: .15rem .6rem;
+      font-size: .8rem; display: flex; align-items: center; gap: .3rem; font-weight: 600;
+    }
+    .tag .del { cursor: pointer; opacity: .6; font-size: .9rem; }
+    .tag .del:hover { opacity: 1; }
+    .tags-input {
+      border: none; outline: none; background: transparent;
+      font-size: .9rem; color: var(--text); flex: 1; min-width: 80px;
+    }
+
+    /* ── Generate Button ─────────────────────────────────────────── */
+    .btn-generate {
+      display: block; width: 100%;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: white; border: none; border-radius: 10px;
+      padding: 1rem; font-size: 1.1rem; font-weight: 700;
+      cursor: pointer; letter-spacing: .03em;
+      box-shadow: 0 4px 14px rgba(45,106,79,.3);
+      transition: transform .1s, box-shadow .1s;
+    }
+    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(45,106,79,.35); }
+    .btn-generate:active { transform: translateY(0); }
+
+    /* ── Output Card ─────────────────────────────────────────────── */
+    #output-card { display: none; }
+    .output-toolbar {
+      display: flex; gap: .6rem; flex-wrap: wrap;
+      padding: .75rem 1.25rem; background: var(--green-pale);
+      border-bottom: 1px solid var(--border);
+    }
+    .btn-small {
+      padding: .35rem .9rem; border-radius: 7px; border: 1.5px solid var(--green);
+      background: white; color: var(--green-dark);
+      font-size: .85rem; font-weight: 600; cursor: pointer;
+      transition: background .12s;
+    }
+    .btn-small:hover { background: var(--green-pale); }
+    .btn-small.primary { background: var(--green); color: white; border-color: var(--green-dark); }
+    .btn-small.primary:hover { background: var(--green-dark); }
+    #prompt-output {
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: .8rem; line-height: 1.6;
+      padding: 1.25rem;
+      white-space: pre-wrap;
+      color: var(--text);
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .copy-toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--green-dark); color: white;
+      padding: .6rem 1.2rem; border-radius: 8px;
+      font-weight: 600; font-size: .9rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s;
+      z-index: 9999;
+    }
+    .copy-toast.show { opacity: 1; }
+
+    /* ── Analysis Prompt Modal ───────────────────────────────────── */
+    .analysis-prompt-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 10000;
+      align-items: center; justify-content: center;
+    }
+    .analysis-prompt-overlay.open { display: flex; }
+    .analysis-prompt-box {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.2rem 1.4rem;
+      max-width: 680px; width: 95%; box-shadow: 0 8px 30px rgba(0,0,0,.25);
+    }
+    .analysis-prompt-box h3 {
+      margin: 0 0 .8rem; font-size: 1rem; color: var(--green-dark);
+    }
+    .analysis-prompt-box textarea {
+      width: 100%; min-height: 260px; font-family: monospace;
+      font-size: .82rem; line-height: 1.5; resize: vertical;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: .6rem; background: var(--input-bg); color: var(--text);
+      box-sizing: border-box;
+    }
+    .analysis-prompt-actions {
+      display: flex; gap: .5rem; margin-top: .7rem; justify-content: flex-end;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .card-body { grid-template-columns: 1fr; }
+      .card-body.triple-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── API Settings Card ───────────────────────────────────────── */
+    .api-card { border-color: var(--amber); }
+    .api-card .card-header { background: var(--amber-light); }
+    .api-card .card-header:hover { background: #f9d4b0; }
+    .api-card .card-header h2 { color: #7c3900; }
+    .api-key-row { display: flex; gap: .5rem; align-items: center; }
+    .api-key-row input { flex: 1; font-family: monospace; font-size: .85rem; }
+    .btn-icon { background: none; border: 1.5px solid var(--border); border-radius: 7px; padding: .38rem .65rem; cursor: pointer; font-size: .95rem; transition: background .12s; }
+    .btn-icon:hover { background: var(--green-pale); }
+
+    /* ── Profile Bar ─────────────────────────────────────────────── */
+    .profile-bar {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 12px; padding: .65rem 1.1rem;
+      display: flex; gap: .5rem; align-items: center; flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+    .profile-bar-label { font-size: .8rem; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+    .profile-bar input[type="text"] { width: 185px; min-width: 110px; }
+    .profile-bar select { width: 185px; min-width: 110px; }
+    .autosave-status {
+      margin-left: auto; font-size: .75rem; color: var(--text-muted);
+      display: flex; align-items: center; gap: .35rem; white-space: nowrap;
+    }
+    .autosave-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1;
+      display: inline-block; transition: background .4s;
+    }
+    .autosave-dot.active { background: var(--green-light); }
+
+    /* ── Two-button row ──────────────────────────────────────────── */
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+    @media (max-width: 600px) { .btn-row { grid-template-columns: 1fr; } }
+    .btn-generate.api-btn {
+      background: linear-gradient(135deg, #b45309, var(--amber));
+      box-shadow: 0 4px 14px rgba(180,83,9,.28);
+    }
+    .btn-generate.api-btn:hover { box-shadow: 0 6px 18px rgba(180,83,9,.35); }
+    .btn-generate.api-btn:disabled,
+    .btn-generate:disabled { opacity: .65; cursor: wait; transform: none !important; }
+
+    /* ── Spinner ─────────────────────────────────────────────────── */
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2.5px solid rgba(255,255,255,.35);
+      border-radius: 50%; border-top-color: #fff;
+      animation: _spin .7s linear infinite; vertical-align: middle; margin-right: .4rem;
+    }
+    @keyframes _spin { to { transform: rotate(360deg); } }
+
+    /* ── Tooltip ─────────────────────────────────────────────────── */
+    .info-tip {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--green-light); color: var(--green-dark);
+      font-size: .68rem; font-weight: 700; cursor: help;
+      margin-left: .3rem; position: relative; vertical-align: middle;
+      user-select: none; flex-shrink: 0;
+    }
+    .info-tip::after {
+      content: attr(data-tip);
+      position: fixed;
+      background: #1b4332; color: white;
+      font-size: .75rem; font-weight: 400; line-height: 1.4;
+      padding: .5rem .75rem; border-radius: 7px;
+      white-space: normal; width: 240px;
+      max-width: calc(100vw - 16px);
+      z-index: 9999; pointer-events: none;
+      opacity: 0; transition: opacity .15s;
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
+      top: var(--tip-top, 0px);
+      left: var(--tip-left, 0px);
+    }
+    .info-tip:hover::after { opacity: 1; }
+
+    /* ── Receipt DB ──────────────────────────────────────────────── */
+    .receipt-db-wrap { margin-top: .6rem; }
+    .receipt-db-search { width: 100%; box-sizing: border-box; padding: .32rem .55rem; border: 1px solid var(--border); border-radius: 5px; font-size: .82rem; margin-bottom: .35rem; }
+    .receipt-db-filter-row { display: flex; gap: .35rem; align-items: center; margin-bottom: .4rem; flex-wrap: wrap; }
+    .receipt-db-filter-row span { font-size: .75rem; color: var(--text-muted); white-space: nowrap; }
+    .receipt-db-filter-row input { flex: 1; min-width: 60px; padding: .22rem .4rem; font-size: .75rem; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
+    .receipt-db-scroll { max-height: 340px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border); border-radius: 5px; }
+    .receipt-db-wrap table { border-collapse: collapse; width: 100%; font-size: .8rem; min-width: 600px; }
+    .receipt-db-wrap th { background: var(--green-pale); color: var(--green-dark); font-weight: 700; padding: .3rem .5rem; border: 1px solid var(--border); text-align: left; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
+    .receipt-db-wrap td { padding: .28rem .45rem; border: 1px solid var(--border); vertical-align: top; }
+    .receipt-db-wrap td[contenteditable="true"]:focus { outline: 2px solid var(--green); border-radius: 3px; }
+    .receipt-db-wrap tr:nth-child(even) td { background: #f8fdfb; }
+    .receipt-db-btn-row { display: flex; gap: .5rem; margin-top: .5rem; flex-wrap: wrap; }
+    .menge-guess-cell { font-style: italic; color: var(--text-muted, #888); cursor: pointer; }
+    .menge-guess-cell:hover { background: #fefce8 !important; }
+    .guess-btn { background: none; border: none; cursor: pointer; font-size: .88rem; padding: 0 .1rem; vertical-align: middle; line-height: 1; }
+
+    /* ── Liter sub-input ─────────────────────────────────────────── */
+    .liter-input-row { display: flex; align-items: center; gap: .4rem; margin-top: .35rem; }
+    .liter-input-row input { width: 80px; }
+    .liter-input-row span { font-size: .82rem; color: var(--text-muted); }
+
+    /* ── Week label ──────────────────────────────────────────────── */
+    .week-label { font-size: .82rem; color: var(--green-dark); font-weight: 600; margin-top: .3rem; min-height: 1.2em; }
+
+    /* ── API Response Card ───────────────────────────────────────── */
+    #api-output-card { display: none; border-color: var(--amber); }
+    #api-output-card .output-toolbar { background: var(--amber-light); border-bottom-color: #f0c88b; }
+    #api-response {
+      font-size: .88rem; line-height: 1.75; padding: 1.4rem 1.5rem;
+      color: var(--text); max-height: 75vh; overflow-y: auto;
+    }
+    #api-response h1 { font-size: 1.2rem; color: var(--green-dark); border-bottom: 2px solid var(--green-pale); padding-bottom: .3rem; margin: 1.2rem 0 .5rem; }
+    #api-response h2 { font-size: 1.05rem; color: var(--green-dark); margin: 1rem 0 .4rem; }
+    #api-response h3 { font-size: .95rem; color: var(--green); margin: .8rem 0 .3rem; }
+    #api-response p  { margin: .4rem 0; }
+    #api-response ul, #api-response ol { padding-left: 1.5rem; margin: .3rem 0 .5rem; }
+    #api-response li { margin: .15rem 0; }
+    #api-response table { border-collapse: collapse; width: 100%; margin: .6rem 0; font-size: .82rem; display: block; overflow-x: auto; }
+    #api-response th { background: var(--green-pale); color: var(--green-dark); font-weight: 700; padding: .4rem .65rem; border: 1px solid var(--border); text-align: left; }
+    #api-response td { padding: .35rem .65rem; border: 1px solid var(--border); vertical-align: top; }
+    #api-response tr:nth-child(even) td { background: #f8fdfb; }
+    #api-response code { background: var(--green-pale); padding: .08rem .3rem; border-radius: 3px; font-family: monospace; font-size: .82rem; }
+    #api-response pre { background: #f1f5f9; padding: .75rem 1rem; border-radius: 7px; overflow-x: auto; font-size: .82rem; line-height: 1.5; margin: .5rem 0; }
+    #api-response blockquote { border-left: 3px solid var(--green-light); padding-left: .9rem; color: var(--text-muted); margin: .5rem 0; font-style: italic; }
+    #api-response strong { color: var(--green-dark); }
+    #api-response hr { border: none; border-top: 1px dashed var(--border); margin: .8rem 0; }
+    .api-meta { font-size: .73rem; color: var(--text-muted); padding: .45rem 1.25rem; background: var(--green-pale); }
+    .api-error-box { background: #fff5f5; border: 1px solid #fecaca; border-radius: 8px; padding: .9rem 1.1rem; color: #b91c1c; font-size: .88rem; margin: 1rem; }
+
+    /* ── Data sub-sections (H) Belege) ──────────────────────────── */
+    .data-subsection { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .dsh-header { background: var(--green-pale); padding: .55rem .9rem; display: flex; align-items: center; gap: .5rem; cursor: pointer; user-select: none; flex-wrap: wrap; }
+    .dsh-header:hover { background: #c7ead4; }
+    .dsh-title { font-size: .87rem; font-weight: 700; color: var(--green-dark); flex: 1; min-width: 60px; }
+    .dsh-badge { background: var(--green-light); color: var(--green-dark); font-size: .7rem; font-weight: 700; padding: .06rem .42rem; border-radius: 10px; min-width: 1.5em; text-align: center; }
+    .dsh-icon { font-size: 1rem; transition: transform .2s; }
+    .dsh-header.collapsed .dsh-icon { transform: rotate(-90deg); }
+    .dsh-body { padding: .75rem; }
+    .dsh-body.collapsed { display: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🌱</div>
+  <div>
+    <h1>Weekly Vegan Meal Planner</h1>
+    <p>Felder ausfüllen &rarr; Prompt generieren <em>oder</em> direkt via ChatGPT-API antworten lassen. Einstellungen werden automatisch gespeichert.</p>
+  </div>
+</header>
+
+<div class="container" id="form-container">
+
+  <!-- ─── API Einstellungen ─────────────────────────────────────── -->
+  <div class="card api-card">
+    <div class="card-header collapsed" onclick="toggleCard(this)">
+      <h2>🔑 API-Einstellungen (ChatGPT)</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body collapsed">
+      <div class="field full-width">
+        <label>OpenAI API-Key <span class="hint">(wird nur lokal im Browser gespeichert, nie versendet außer an OpenAI)</span></label>
+        <div class="api-key-row">
+          <input type="password" id="api_key" placeholder="sk-…" autocomplete="off" />
+          <button class="btn-icon" title="Anzeigen / Verbergen" onclick="toggleApiKeyVisibility()">👁</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Modell <span class="hint">(Dropdown oder eigene ID eingeben)</span></label>
+        <select id="api_model" onchange="syncModelInput(this)">
+          <optgroup label="── GPT-5 Frontier ──">
+            <option value="gpt-5.4" selected>gpt-5.4 – Flagship, beste Qualität ★</option>
+            <option value="gpt-5.4-pro">gpt-5.4-pro – präzisere Antworten</option>
+            <option value="gpt-5-mini">gpt-5-mini – günstig, nahe Frontier</option>
+            <option value="gpt-5-nano">gpt-5-nano – schnellst &amp; günstigst</option>
+            <option value="gpt-5">gpt-5 – konfigurierbares Reasoning</option>
+          </optgroup>
+          <optgroup label="── GPT-4.1 ──">
+            <option value="gpt-4.1">gpt-4.1 – bestes Non-Reasoning-Modell</option>
+            <option value="gpt-4.1-mini">gpt-4.1-mini – schnell &amp; günstig</option>
+            <option value="gpt-4.1-nano">gpt-4.1-nano – sehr günstig</option>
+          </optgroup>
+          <optgroup label="── GPT-4o ──">
+            <option value="gpt-4o">gpt-4o</option>
+            <option value="gpt-4o-mini">gpt-4o-mini</option>
+          </optgroup>
+          <optgroup label="── Reasoning (o-Serie) ──">
+            <option value="o4-mini">o4-mini – Reasoning, schnell &amp; günstig</option>
+            <option value="o3">o3 – Reasoning, stark</option>
+            <option value="o3-pro">o3-pro – stärkstes Reasoning</option>
+          </optgroup>
+          <option value="__custom__">✏️ Eigene Modell-ID …</option>
+        </select>
+        <input type="text" id="api_model_custom" placeholder="z. B. gpt-5.3"
+               style="display:none;margin-top:.35rem;font-family:monospace;font-size:.85rem"
+               oninput="scheduleAutosave()" />
+        <span id="api_model_info" style="font-size:.75rem;color:var(--text-muted);margin-top:.25rem;display:block"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Profilverwaltung ──────────────────────────────────────── -->
+  <div class="profile-bar">
+    <span class="profile-bar-label">💾 Profile:</span>
+    <input type="text" id="profile_name_input" placeholder="Profilname (z. B. März 2026)" />
+    <button class="btn-small primary" onclick="saveProfile()">Speichern</button>
+    <select id="profile_select">
+      <option value="">– Profil wählen –</option>
+    </select>
+    <button class="btn-small" onclick="loadProfile()">Laden</button>
+    <button class="btn-small" onclick="deleteProfile()" style="border-color:#fca5a5;color:#b91c1c">Löschen</button>
+    <span class="autosave-status">
+      <span class="autosave-dot" id="autosave-dot"></span>
+      Auto-gespeichert
+    </span>
+    <div style="width:100%;height:0;margin:0;padding:0"></div>
+    <button class="btn-small" onclick="exportProfilesJSON()">⬇️ JSON</button>
+    <button class="btn-small" onclick="R('profile-import-file').click()">⬆️ JSON</button>
+    <input type="file" id="profile-import-file" accept=".json" style="display:none" onchange="handleProfileImport(this)">
+  </div>
+
+  <!-- ─── Plan-Info ──────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>📋 Plan-Grundinfos</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <label>Plan-Name <span class="hint">(optional, z. B. "KW12 – Muskelaufbau")</span></label>
+        <input type="text" id="plan_name" placeholder="z. B. KW12 – Muskelaufbau" />
+      </div>
+      <div class="field">
+        <label>Anzahl Personen</label>
+        <input type="number" id="people_count" value="1" min="1" max="10" />
+      </div>
+      <div class="field">
+        <label>Wochenstartag</label>
+        <select id="week_start_day" onchange="updateWeekLabel()">
+          <option value="1" selected>Montag</option>
+          <option value="2">Dienstag</option>
+          <option value="3">Mittwoch</option>
+          <option value="4">Donnerstag</option>
+          <option value="5">Freitag</option>
+          <option value="6">Samstag</option>
+          <option value="0">Sonntag</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Planwoche</label>
+        <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+          <input type="date" id="week_start" style="flex:1; min-width:130px" onchange="updateWeekLabel()" />
+          <span style="font-size:.82rem;color:var(--text-muted)">bis</span>
+          <input type="date" id="week_end" style="flex:1; min-width:130px" onchange="updateWeekLabel()" />
+          <button class="btn-small" onclick="setCurrentWeek()">📅 Aktuelle Woche</button>
+        </div>
+        <div class="week-label" id="week_label"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── A) Ziele ──────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>🎯 A) Ziele & Optimierungslogik</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body">
+
+      <div class="field">
+        <label>Primäres Ziel</label>
+        <select id="primary_goal">
+          <option value="">– Standard (ausgewogen & nährstoffbewusst) –</option>
+          <option>kostenminimiert</option>
+          <option>budgetbasiert</option>
+          <option>muskelaufbau</option>
+          <option>alltagstauglich</option>
+          <option>zeitsparend</option>
+          <option>nährstoffoptimiert</option>
+          <option>gewicht verlieren</option>
+          <option>gewicht halten</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Gewünschte Abwechslung</label>
+        <div class="radio-row" id="desired_variety">
+          <label><input type="radio" name="variety" value="niedrig" /> Niedrig</label>
+          <label><input type="radio" name="variety" value="mittel" checked /> Mittel</label>
+          <label><input type="radio" name="variety" value="hoch" /> Hoch</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Wochenbudget <span class="hint">(€ / Woche)</span></label>
+        <div style="display:flex; gap:.5rem;">
+          <input type="number" id="budget_min" placeholder="Min (€)" min="0" step="5" style="flex:1" />
+          <input type="number" id="budget_max" placeholder="Max (€)" min="0" step="5" style="flex:1" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Hartes Budgetlimit <span class="hint">(darf nie überschritten werden)</span></label>
+        <input type="number" id="budget_hard_cap" placeholder="€ (optional)" min="0" step="5" />
+      </div>
+
+      <div class="field">
+        <label>Gewünschte Kochkomplexität</label>
+        <div class="radio-row" id="cooking_complexity">
+          <label><input type="radio" name="complexity" value="niedrig" /> Niedrig</label>
+          <label><input type="radio" name="complexity" value="mittel" checked /> Mittel</label>
+          <label><input type="radio" name="complexity" value="hoch" /> Hoch</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Meal Prep <span class="info-tip" data-tip="Nein = kein Mehrkochen geplant. Kleine Batches = beim normalen Kochen automatisch mehr zubereiten und Reste gezielt einplanen (kein extra Block). Ja, mit Prep-Tag = dedizierter Kochblock an einem wählbaren Tag.">i</span></label>
+        <div class="radio-row" id="meal_prep_mode">
+          <label><input type="radio" name="meal_prep" value="meal prep erlaubt" onchange="toggleMealPrep(this.value)" /> Ja</label>
+          <label><input type="radio" name="meal_prep" value="kein meal prep" onchange="toggleMealPrep(this.value)" /> Nein</label>
+          <label><input type="radio" name="meal_prep" value="kleine batches erlaubt" checked onchange="toggleMealPrep(this.value)" /> Batches</label>
+        </div>
+        <div id="meal_prep_day_field" style="display:none; margin-top:.4rem">
+          <select id="meal_prep_day">
+            <option>Montag</option>
+            <option>Dienstag</option>
+            <option>Mittwoch</option>
+            <option>Donnerstag</option>
+            <option>Freitag</option>
+            <option selected>Samstag</option>
+            <option>Sonntag</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Regionalität &amp; Saisonalität</label>
+        <div class="check-group" id="regional_seasonal">
+          <label><input type="checkbox" value="Regionale Produkte bevorzugen" /> Regionale Produkte <span class="info-tip" data-tip="Produkte aus Deutschland / der Region bevorzugen, wenn verfügbar und preislich vertretbar.">i</span></label>
+          <label><input type="checkbox" value="Saisonale Lebensmittel bevorzugen" /> Saisonale Lebensmittel <span class="info-tip" data-tip="Nur Obst und Gemüse der aktuellen Jahreszeit einplanen. Der Agent kennt das aktuelle Datum.">i</span></label>
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Individuelle Zielprioritäten <span class="hint">(optional, freie Reihenfolge)</span></label>
+        <textarea id="goal_priority_override" placeholder="z. B.&#10;1. Proteinziel erreichen&#10;2. Budget maximal 40 €&#10;3. Max. 10 min Kochzeit abends"></textarea>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── B) Person ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>👤 B) Person & Ernährung</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body">
+
+      <div class="field">
+        <label>Kalorien-Grundumsatz (BMR/TDEE) <span class="hint">(kcal/Tag, optional)</span> <span class="info-tip" data-tip="Dein Grundumsatz (z. B. Mifflin-St-Jeor) oder gemessener TDEE ohne Sport. Der Agent addiert Kalorien für Trainingstage automatisch dazu.">i</span></label>
+        <input type="number" id="calorie_target" placeholder="z. B. 2200" min="1000" max="5000" step="50" />
+      </div>
+
+      <div class="field">
+        <label>Protein-Ziel <span class="hint">(g/Tag, optional)</span></label>
+        <input type="number" id="protein_target" placeholder="z. B. 130" min="30" max="300" step="5" />
+      </div>
+
+      <div class="field">
+        <label>Appetitlevel / Hungergefühl</label>
+        <div class="radio-row">
+          <label><input type="radio" name="appetite" value="niedrig" /> Niedrig</label>
+          <label><input type="radio" name="appetite" value="mittel" checked /> Mittel</label>
+          <label><input type="radio" name="appetite" value="hoch" /> Hoch</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Bereitschaft: Mahlzeiten wiederholen</label>
+        <div class="radio-row">
+          <label><input type="radio" name="repeat" value="niedrig" /> Niedrig</label>
+          <label><input type="radio" name="repeat" value="mittel" checked /> Mittel</label>
+          <label><input type="radio" name="repeat" value="hoch" /> Hoch</label>
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Allergien / Unverträglichkeiten <span class="hint">(Enter zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-allergies" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Gluten, Soja …" onkeydown="addTag(event,'tags-allergies')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Abgelehnte Lebensmittel <span class="hint">(Enter zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-dislikes" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Rosenkohl, Pilze …" onkeydown="addTag(event,'tags-dislikes')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Bevorzugte Lebensmittel <span class="hint">(Enter zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-preferred" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Linsen, Pasta, Tofu …" onkeydown="addTag(event,'tags-preferred')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Sonstige Makro-Präferenzen <span class="hint">(optional)</span></label>
+        <textarea id="macro_preference" placeholder="z. B. Low-Carb abends, kein Öl als Fettquelle, etc."></textarea>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── C) Sport ──────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>🏋️ C) Sport & Training</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body">
+
+      <div class="field">
+        <label>Sport</label>
+        <div class="radio-row">
+          <label><input type="radio" name="does_sport" value="ja" onchange="toggleSport(true)" /> Ja</label>
+          <label><input type="radio" name="does_sport" value="nein" checked onchange="toggleSport(false)" /> Nein</label>
+        </div>
+      </div>
+
+      <div class="field" id="sport_goal_field" style="display:none">
+        <label>Sport-Ziel</label>
+        <select id="sport_goal">
+          <option>ausdauer</option>
+          <option>ausdauer &amp; muskelaufbau</option>
+          <option>muskelaufbau</option>
+          <option>gewicht halten</option>
+          <option>kraft</option>
+          <option>allgemeine Fitness</option>
+        </select>
+      </div>
+
+      <div class="field full-width" id="training_days_field" style="display:none">
+        <label>Trainingstage</label>
+        <div class="check-group" id="training_days">
+          <label><input type="checkbox" value="Montag" /> Montag</label>
+          <label><input type="checkbox" value="Dienstag" /> Dienstag</label>
+          <label><input type="checkbox" value="Mittwoch" /> Mittwoch</label>
+          <label><input type="checkbox" value="Donnerstag" /> Donnerstag</label>
+          <label><input type="checkbox" value="Freitag" /> Freitag</label>
+          <label><input type="checkbox" value="Samstag" /> Samstag</label>
+          <label><input type="checkbox" value="Sonntag" /> Sonntag</label>
+        </div>
+      </div>
+
+      <div class="field" id="training_intensity_field" style="display:none">
+        <label>Trainingsintensitäten <span class="hint">(Freitext)</span></label>
+        <textarea id="training_intensities" placeholder="z. B. Mo: Krafttraining 60 min (hoch), Mi: Laufen 45 min (mittel), Fr: Yoga (niedrig)"></textarea>
+      </div>
+
+      <div class="field" id="long_session_field" style="display:none">
+        <label>Langer Trainingstag <span class="hint">(optionaler Fokus)</span></label>
+        <input type="text" id="long_session_day" placeholder="z. B. Samstag" />
+      </div>
+
+      <div class="field" id="pre_post_field" style="display:none">
+        <label>Pre-/Post-Workout Ernährung benötigt?</label>
+        <div class="radio-row">
+          <label><input type="radio" name="pre_post" value="ja" /> Ja</label>
+          <label><input type="radio" name="pre_post" value="nein" checked /> Nein</label>
+        </div>
+      </div>
+
+      <div class="field full-width" id="training_context_field" style="display:none">
+        <label>Weiterer Trainingskontext <span class="hint">(optional)</span></label>
+        <textarea id="training_context" placeholder="Konkreter Trainingsplan, Wochenstruktur, etc."></textarea>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── D) Zeit / Alltag ──────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>⏰ D) Zeit & Alltag</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body triple-col">
+
+      <div class="field">
+        <label>Max. Frühstückszeit <span class="hint">(Min.)</span></label>
+        <input type="number" id="breakfast_time" value="5" min="1" max="60" />
+      </div>
+      <div class="field">
+        <label>Max. Mittagszeit <span class="hint">(Min.)</span></label>
+        <input type="number" id="lunch_time" value="15" min="1" max="90" />
+      </div>
+      <div class="field">
+        <label>Max. Ausnahme-Mahlzeiten/Woche <span class="info-tip" data-tip="Wie viele Mahlzeiten dürfen komplett vom Plan abweichen (spontan, unvorhergesehen)? Diese werden als Puffer eingeplant.">i</span></label>
+        <input type="number" id="max_exception_meals" placeholder="z. B. 2" min="0" max="21" />
+      </div>
+
+      <div class="field">
+        <label>Max. Abendessenszeit <span class="hint">(Min.)</span></label>
+        <input type="number" id="dinner_time" value="15" min="1" max="90" />
+      </div>
+      <div class="field">
+        <label>Einkaufstag</label>
+        <select id="shopping_day">
+          <option>Montag</option>
+          <option>Dienstag</option>
+          <option>Mittwoch</option>
+          <option>Donnerstag</option>
+          <option>Freitag</option>
+          <option selected>Samstag</option>
+          <option>Sonntag</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Take-away / Essen gehen Tage <span class="hint">(Enter)</span> <span class="info-tip" data-tip="Tage, an denen du auswärts isst oder bestellt (nicht selbst zubereitet). Diese Mahlzeiten werden im Plan ausgelassen oder als Platzhalter markiert.">i</span></label>
+        <div class="tags-container" id="tags-external" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Dienstag Mittag …" onkeydown="addTag(event,'tags-external')" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Bürotage <span class="info-tip" data-tip="An diesen Tagen bist du im Büro. To-go-Tage werden automatisch mit angehakt, können aber manuell angepasst werden.">i</span></label>
+        <div class="check-group" id="office_days">
+          <label><input type="checkbox" value="Montag" onchange="syncTogoFromOffice()" /> Mo</label>
+          <label><input type="checkbox" value="Dienstag" onchange="syncTogoFromOffice()" /> Di</label>
+          <label><input type="checkbox" value="Mittwoch" onchange="syncTogoFromOffice()" /> Mi</label>
+          <label><input type="checkbox" value="Donnerstag" onchange="syncTogoFromOffice()" /> Do</label>
+          <label><input type="checkbox" value="Freitag" onchange="syncTogoFromOffice()" /> Fr</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>To-go Mahlzeiten nötig an: <span class="info-tip" data-tip="An diesen Tagen benötigst du fertig verpackte Mahlzeiten zum Mitnehmen. Wird automatisch aus den Bürotagen befüllt.">i</span></label>
+        <div class="check-group" id="togo_days">
+          <label><input type="checkbox" value="Montag" /> Mo</label>
+          <label><input type="checkbox" value="Dienstag" /> Di</label>
+          <label><input type="checkbox" value="Mittwoch" /> Mi</label>
+          <label><input type="checkbox" value="Donnerstag" /> Do</label>
+          <label><input type="checkbox" value="Freitag" /> Fr</label>
+          <label><input type="checkbox" value="Samstag" /> Sa</label>
+          <label><input type="checkbox" value="Sonntag" /> So</label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── E) Einkauf ────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>🛒 E) Einkauf & Verfügbarkeit</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body">
+
+      <div class="field full-width">
+        <label>Geschäfte <span class="hint">(Enter zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-stores" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Lidl, REWE, DM, Türkischer Supermarkt …" onkeydown="addTag(event,'tags-stores')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Bekannte Produkteinschränkungen / Anreicherungsinfos <span class="hint">(Enter oder ; zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-product-constraints" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Lidl DM Bio Haferdrink ist mit Calcium angereichert; kein angereicherter Pflanzendrink bei Netto …" onkeydown="addTag(event,'tags-product-constraints')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Konkrete bekannte Produkte <span class="hint">(Enter oder ; zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-local-products" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Alpro Sojadrink Natur (Lidl); ProVeg Linsenwurst (Edeka) …" onkeydown="addTag(event,'tags-local-products')" />
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── F) Pantry ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>🏠 F) Vorräte & Pantry</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body">
+
+      <div class="field full-width">
+        <label>Vorhandene Pantry-Artikel <span class="hint">(trockene Vorräte, Gewürze, Konserven – Enter oder ; zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-pantry" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. rote Linsen 1 kg; Dosen-Kichererbsen; Reis …" onkeydown="addTag(event,'tags-pantry')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Kühlschrankinhalt <span class="hint">(Produkte, die verbraucht werden sollen – Enter oder ; zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-fridge" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Tofu 400 g (muss weg); Sojajoghurt angebrochen …" onkeydown="addTag(event,'tags-fridge')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Gefrierinhalt <span class="hint">(Enter oder ; zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-freezer" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. TK-Spinat 1 kg; TK-Erbsen 500 g …" onkeydown="addTag(event,'tags-freezer')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Bulk / Großgebinde vorhanden <span class="hint">(Enter oder ; zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-bulk" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Proteinpulver 1 kg (~25 g/Port.); Nussmus 500 g …" onkeydown="addTag(event,'tags-bulk')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Supplemente / Nahrungsergänzung <span class="hint">(Enter oder ; zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-supplements" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. B12-Spray 500 mcg; Vitamin D 1000 IE …" onkeydown="addTag(event,'tags-supplements')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Verderbliches, das priorisiert werden soll <span class="hint">(Enter oder ; zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-perishables" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Salat läuft morgen ab; offenes Tomatenpüree …" onkeydown="addTag(event,'tags-perishables')" />
+        </div>
+      </div>
+
+      <div class="field full-width" style="border-top:1px solid var(--border);padding-top:.8rem;margin-top:.2rem;">
+        <div id="pantry_budget_opts" class="check-group">
+          <label><input type="checkbox" id="pantry_count_budget" value="pantry_costs_count_toward_budget" onchange="scheduleAutosave()" /> 💰 Pantry-/Vorrats-Kosten ins Gesamtbudget einrechnen <span style="font-weight:400;opacity:.7;font-size:.77rem">(KI schätzt anteilige Wochenkosten aus den Mengenangaben)</span></label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── G) Lagerung ───────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>🧊 G) Lagerung & Infrastruktur</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body">
+
+      <div class="field">
+        <label>Kühlschrankgröße</label>
+        <div class="radio-row">
+          <label><input type="radio" name="fridge_size" value="klein" checked onchange="toggleLiters('fridge')" /> Klein</label>
+          <label><input type="radio" name="fridge_size" value="mittel" onchange="toggleLiters('fridge')" /> Mittel</label>
+          <label><input type="radio" name="fridge_size" value="groß" onchange="toggleLiters('fridge')" /> Groß</label>
+          <label><input type="radio" name="fridge_size" value="individuell" onchange="toggleLiters('fridge')" /> Indiv.</label>
+        </div>
+        <div class="liter-input-row" id="fridge_liters_row" style="display:none">
+          <input type="number" id="fridge_liters" placeholder="z. B. 150" min="0" max="1000" step="10" />
+          <span>Liter</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Gefrierfachgröße</label>
+        <div class="radio-row">
+          <label><input type="radio" name="freezer_size" value="kleines Gefrierfach" checked onchange="toggleLiters('freezer')" /> Klein</label>
+          <label><input type="radio" name="freezer_size" value="mittelgroßes Gefrierfach" onchange="toggleLiters('freezer')" /> Mittel</label>
+          <label><input type="radio" name="freezer_size" value="große Gefrierbox / -schrank" onchange="toggleLiters('freezer')" /> Groß</label>
+          <label><input type="radio" name="freezer_size" value="individuell" onchange="toggleLiters('freezer')" /> Indiv.</label>
+        </div>
+        <div class="liter-input-row" id="freezer_liters_row" style="display:none">
+          <input type="number" id="freezer_liters" placeholder="z. B. 60" min="0" max="500" step="5" />
+          <span>Liter</span>
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Küchengeräte <span class="hint">(Enter zum Hinzufügen)</span></label>
+        <div class="tags-container" id="tags-kitchen" onclick="this.querySelector('.tags-input').focus()">
+          <input class="tags-input" placeholder="z. B. Kochtopf, Pfanne, Mikrowelle, Backofen, Stabmixer …" onkeydown="addTag(event,'tags-kitchen')" />
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Büroausstattung <span class="hint">(zusätzl. Geräte)</span></label>
+        <div class="check-group" id="office_equip">
+          <label><input type="checkbox" value="Kühlschrank" /> Kühlschrank</label>
+          <label><input type="checkbox" value="Mikrowelle" /> Mikrowelle</label>
+          <label><input type="checkbox" value="Wasserkocher" /> Wasserkocher</label>
+          <label><input type="checkbox" value="Herd" /> Herd/Kochplatte</label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── H) Realitätsdaten ─────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>📄 H) Reale Daten & Belege</h2>
+      <span style="margin-left:auto;display:flex;gap:.35rem;align-items:center">
+        <button class="btn-small" onclick="event.stopPropagation(); exportAllDataJSON()">⬇️ JSON</button>
+        <button class="btn-small" onclick="event.stopPropagation(); R('all-data-import-file').click()">⬆️ JSON</button>
+        <input type="file" id="all-data-import-file" accept=".json" style="display:none" onchange="handleAllDataImport(this)">
+        <span class="toggle">▾</span>
+      </span>
+    </div>
+    <div class="card-body single-col">
+
+      <div class="field">
+        <label>Zusätzliche Hinweise <span class="hint">(optional)</span></label>
+        <textarea id="real_data_details" placeholder="Ergänzende Hinweise zu den Daten (z. B. Kontext, Besonderheiten …)" style="min-height:60px"></textarea>
+      </div>
+
+      <!-- 1. Kassenzettel -->
+      <div class="data-subsection">
+        <div class="dsh-header collapsed" onclick="toggleDataSubsection(this,'receipt')">
+          <span class="dsh-title">🧾 Kassenzettel</span>
+          <span class="dsh-badge" id="badge-receipt">0</span>
+          <button class="btn-small" onclick="event.stopPropagation(); addReceiptRow()">+ Zeile</button>
+          <input type="file" id="receipt_files" accept="image/*" multiple style="display:none" onchange="updateReceiptLabel(this)" />
+          <button class="btn-small" onclick="event.stopPropagation(); document.getElementById('receipt_files').click()">📁 Foto wählen</button>
+          <button class="btn-small primary" onclick="event.stopPropagation(); analyzeReceiptImages()">📷 KI-Analyse</button>
+          <button class="btn-small" onclick="event.stopPropagation(); showAnalysisPrompt('receipt')">📝 Prompt</button>
+          <span class="dsh-icon">▾</span>
+        </div>
+        <div class="dsh-body collapsed" id="dsh-body-receipt">
+          <div id="receipt-db-area" class="receipt-db-wrap"></div>
+        </div>
+      </div>
+
+      <!-- 2. Trackingdaten -->
+      <div class="data-subsection">
+        <div class="dsh-header collapsed" onclick="toggleDataSubsection(this,'tracking')">
+          <span class="dsh-title">📊 Trackingdaten</span>
+          <span class="dsh-badge" id="badge-tracking">0</span>
+          <button class="btn-small" onclick="event.stopPropagation(); addTrackingRow()">+ Zeile</button>
+          <input type="file" id="tracking_files" accept="image/*,.pdf,.txt,.csv,.json,.xlsx,.doc,.docx" multiple style="display:none" />
+          <button class="btn-small" onclick="event.stopPropagation(); R('tracking_files').click()">📁 Datei wählen</button>
+          <button class="btn-small primary" onclick="event.stopPropagation(); analyzeDataFiles('tracking')">🔍 KI-Analyse</button>
+          <button class="btn-small" onclick="event.stopPropagation(); showAnalysisPrompt('tracking')">📝 Prompt</button>
+          <span class="dsh-icon">▾</span>
+        </div>
+        <div class="dsh-body collapsed" id="dsh-body-tracking">
+          <div id="tracking-db-area" class="receipt-db-wrap"></div>
+        </div>
+      </div>
+
+      <!-- 3. Produkte -->
+      <div class="data-subsection">
+        <div class="dsh-header collapsed" onclick="toggleDataSubsection(this,'products')">
+          <span class="dsh-title">📦 Produkte</span>
+          <span class="dsh-badge" id="badge-products">0</span>
+          <button class="btn-small" onclick="event.stopPropagation(); addProductRow()">+ Zeile</button>
+          <input type="file" id="products_files" accept="image/*,.pdf,.txt,.csv,.json,.xlsx,.doc,.docx" multiple style="display:none" />
+          <button class="btn-small" onclick="event.stopPropagation(); R('products_files').click()">📁 Datei wählen</button>
+          <button class="btn-small primary" onclick="event.stopPropagation(); analyzeDataFiles('products')">🔍 KI-Analyse</button>
+          <button class="btn-small" onclick="event.stopPropagation(); showAnalysisPrompt('products')">📝 Prompt</button>
+          <span class="dsh-icon">▾</span>
+        </div>
+        <div class="dsh-body collapsed" id="dsh-body-products">
+          <div id="products-db-area" class="receipt-db-wrap"></div>
+        </div>
+      </div>
+
+      <!-- 4. Bestellungen -->
+      <div class="data-subsection">
+        <div class="dsh-header collapsed" onclick="toggleDataSubsection(this,'orders')">
+          <span class="dsh-title">🛒 Bestellungen</span>
+          <span class="dsh-badge" id="badge-orders">0</span>
+          <button class="btn-small" onclick="event.stopPropagation(); addOrderRow()">+ Zeile</button>
+          <input type="file" id="orders_files" accept="image/*,.pdf,.txt,.csv,.json,.xlsx,.doc,.docx" multiple style="display:none" />
+          <button class="btn-small" onclick="event.stopPropagation(); R('orders_files').click()">📁 Datei wählen</button>
+          <button class="btn-small primary" onclick="event.stopPropagation(); analyzeDataFiles('orders')">🔍 KI-Analyse</button>
+          <button class="btn-small" onclick="event.stopPropagation(); showAnalysisPrompt('orders')">📝 Prompt</button>
+          <span class="dsh-icon">▾</span>
+        </div>
+        <div class="dsh-body collapsed" id="dsh-body-orders">
+          <div id="orders-db-area" class="receipt-db-wrap"></div>
+        </div>
+      </div>
+
+      <!-- 5. Trainingsdaten -->
+      <div class="data-subsection">
+        <div class="dsh-header collapsed" onclick="toggleDataSubsection(this,'trainingdata')">
+          <span class="dsh-title">🏋️ Trainingsdaten</span>
+          <span class="dsh-badge" id="badge-trainingdata">0</span>
+          <button class="btn-small" onclick="event.stopPropagation(); addTrainingDataRow()">+ Zeile</button>
+          <input type="file" id="trainingdata_files" accept="image/*,.pdf,.txt,.csv,.json,.xlsx,.doc,.docx" multiple style="display:none" />
+          <button class="btn-small" onclick="event.stopPropagation(); R('trainingdata_files').click()">📁 Datei wählen</button>
+          <button class="btn-small primary" onclick="event.stopPropagation(); analyzeDataFiles('trainingdata')">🔍 KI-Analyse</button>
+          <button class="btn-small" onclick="event.stopPropagation(); showAnalysisPrompt('trainingdata')">📝 Prompt</button>
+          <span class="dsh-icon">▾</span>
+        </div>
+        <div class="dsh-body collapsed" id="dsh-body-trainingdata">
+          <div id="trainingdata-db-area" class="receipt-db-wrap"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── I) Nutzungsverhalten ──────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>🧠 I) Nutzungsverhalten & Praxis</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body">
+
+      <div class="field full-width">
+        <label>Typische Scheiterpunkte aus vergangenen Wochen</label>
+        <textarea id="failure_points" placeholder="z. B. Abends zu müde zum Kochen, Snacks unkontrolliert, kein Mittag vorbereitet für Bürotage …"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Snack-Präferenz</label>
+        <input type="text" id="snack_pref" placeholder="z. B. süß, salzig, selten, täglich" />
+      </div>
+
+      <div class="field">
+        <label>Dessert-Häufigkeit</label>
+        <div class="radio-row">
+          <label><input type="radio" name="dessert" value="selten/nie" checked /> Selten/nie</label>
+          <label><input type="radio" name="dessert" value="1–2x/Woche" /> 1–2x</label>
+          <label><input type="radio" name="dessert" value="täglich" /> Täglich</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Wie oft auswärts essen? <span class="info-tip" data-tip="Rückblick auf die Vorwoche. Hilft dem Agenten einzuschätzen, ob Abweichungen strukturell oder situativ waren.">i</span></label>
+        <div class="radio-row">
+          <label><input type="radio" name="eating_out" value="selten" checked /> Selten</label>
+          <label><input type="radio" name="eating_out" value="1–2x/Woche" /> 1–2x</label>
+          <label><input type="radio" name="eating_out" value="3+x/Woche" /> 3+x</label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── J) Ausgabeoptionen ────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>⚙️ J) Ausgabeoptionen</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body">
+
+      <div class="field">
+        <label>Detailgrad</label>
+        <div class="radio-row">
+          <label><input type="radio" name="detail_level" value="kurz" /> Kurz</label>
+          <label><input type="radio" name="detail_level" value="mittel" /> Mittel</label>
+          <label><input type="radio" name="detail_level" value="detailliert" checked /> Detailliert</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Optionale Abschnitte einschließen</label>
+        <div class="check-group" id="output_options">
+          <label><input type="checkbox" value="Kostentabelle" checked /> Kostentabelle</label>
+          <label><input type="checkbox" value="Nährstofftabelle" checked /> Nährstofftabelle</label>
+          <label><input type="checkbox" value="Review-Abschnitt" checked /> Review-Abschnitt</label>
+          <label><input type="checkbox" value="NotebookLM-freundliches Format" checked /> NotebookLM-Format</label>
+        </div>
+      </div>
+
+      <div class="field full-width">
+        <label>Freie Anmerkungen / Sonstige Wünsche</label>
+        <textarea id="extra_notes" placeholder="Alles, was sonst noch wichtig ist …"></textarea>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── Generate ──────────────────────────────────────────────── -->
+  <div class="btn-row">
+    <button class="btn-generate" onclick="generatePrompt()">
+      🌱 Prompt generieren
+    </button>
+    <button class="btn-generate api-btn" id="btn-api" onclick="sendToAPI()">
+      🤖 Direkt via ChatGPT generieren
+    </button>
+  </div>
+
+  <!-- ─── Output ───────────────────────────────────────────────── -->
+  <div class="card" id="output-card">
+    <div class="output-toolbar">
+      <strong style="margin-right:auto;color:var(--green-dark);">📋 Generierter Prompt</strong>
+      <button class="btn-small primary" onclick="copyPrompt()">📋 Kopieren</button>
+      <button class="btn-small" onclick="downloadPrompt()">💾 Als .txt speichern</button>
+    </div>
+    <pre id="prompt-output"></pre>
+  </div>
+
+  <!-- ─── API Output ────────────────────────────────────────────── -->
+  <div class="card" id="api-output-card">
+    <div class="output-toolbar">
+      <strong style="margin-right:auto;color:#7c3900;">🤖 ChatGPT Antwort</strong>
+      <button class="btn-small primary" onclick="copyApiResponse()" style="background:var(--amber);border-color:#b45309">📋 Kopieren</button>
+      <button class="btn-small" onclick="downloadApiResponse()">💾 Als .txt speichern</button>
+    </div>
+    <div id="api-response"></div>
+    <div class="api-meta" id="api-meta"></div>
+  </div>
+
+</div>
+
+<div class="copy-toast" id="copy-toast">✅ Gespeichert!</div>
+
+<!-- Analysis Prompt Modal -->
+<div class="analysis-prompt-overlay" id="analysis-prompt-overlay" onclick="if(event.target===this)closeAnalysisPrompt()">
+  <div class="analysis-prompt-box">
+    <h3 id="analysis-prompt-title">📝 Manueller Analyse-Prompt</h3>
+    <textarea id="analysis-prompt-textarea" readonly></textarea>
+    <div class="analysis-prompt-actions">
+      <button class="btn-small primary" onclick="copyAnalysisPrompt()">📋 Kopieren</button>
+      <button class="btn-small" onclick="closeAnalysisPrompt()">✖ Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────
+   Config constants
+──────────────────────────────────────────────────────────────────*/
+const TAG_CONTAINERS  = ['tags-allergies','tags-dislikes','tags-preferred','tags-external',
+  'tags-stores','tags-kitchen','tags-pantry','tags-fridge','tags-freezer',
+  'tags-bulk','tags-supplements','tags-perishables',
+  'tags-product-constraints','tags-local-products'];
+const INPUT_IDS       = [
+  'plan_name','people_count','primary_goal','budget_min','budget_max','budget_hard_cap',
+  'goal_priority_override','calorie_target','protein_target','macro_preference',
+  'sport_goal','training_intensities','long_session_day','training_context',
+  'breakfast_time','lunch_time','dinner_time','shopping_day','max_exception_meals',
+  'real_data_details','failure_points',
+  'snack_pref','extra_notes','api_model','api_model_custom',
+  'week_start','week_end','week_start_day','meal_prep_day','fridge_liters','freezer_liters'
+];
+const RADIO_GROUPS    = ['variety','complexity','meal_prep','appetite','repeat','does_sport',
+  'pre_post','fridge_size','freezer_size','dessert','eating_out','detail_level'];
+const CHECKBOX_GROUPS = ['training_days','office_days','togo_days',
+  'output_options','office_equip','regional_seasonal','pantry_budget_opts'];
+
+/* ─────────────────────────────────────────────────────────────────
+   Embedded system prompt (rules for the API call)
+──────────────────────────────────────────────────────────────────*/
+const SYSTEM_PROMPT = `Du bist ein "Weekly Vegan Meal Planner Agent" für Deutschland. Erstelle einen wöchentlichen veganen Essensplan der auf die Nutzereingaben optimiert ist. Befolge ALLE folgenden Regeln. Fehlende Eingaben: Defaults verwenden, Annahmen markieren, fortfahren. Nur Rückfragen wenn Eingaben widersprüchlich sind.
+
+SPRACHE & FORMAT: Deutsch. Copy/paste-freundlich für NotebookLM.
+
+ZIELLOGIK: Plan auf tatsächlich übergebene Ziele optimieren. Standard-Priorität wenn keine Ziele: 1. Nährstoffdeckung 2. Budget einhalten 3. Kochzeit minimieren 4. Zutatenanzahl minimieren 5. Saisonalität. "günstig" ist NICHT immer das Ziel. Konkrete Budgets/Zielgewichtungen haben Vorrang.
+
+ERNÄHRUNGSREGELN: 100% vegan. Günstige alltagstaugliche Standardprodukte bevorzugen. Verarbeitete LM erlaubt wenn sie Preis/Zeit/Nährstoffe verbessern. Ultra-verarbeitete teure Ersatzprodukte vermeiden wenn nicht funktional nötig. Proteinpulver nur wenn Nutzer es besitzt/erlaubt und sinnvoll passt. Jodsalz als Standard. Vitamin B12 immer erwähnen. Vitamin D saisonabhängig. Kritische Nährstoffe offen markieren.
+
+REALITÄTSREGELN: NICHT annehmen dass pflanzliche Drinks/Joghurts angereichert sind. Konkrete Produktdaten haben Vorrang vor generischen Annahmen. Wenn Packungsangaben Anreicherung zeigen, in Nährstoffbewertung einbeziehen.
+
+ZEITLOGIK: Frühstück max. 5 min, Mittag max. 15 min, Abend max. 15 min (wenn keine anderen Werte). Max 1 Mahlzeit/Woche bis 20 min wenn Gesamtplan klar verbessert. Kein separater Meal-Prep-Block. 2-3 Portionen mitkochen erlaubt wenn Restelogik explizit ist. Niemals "Reste" ohne Ursprung, Menge, Zieltag.
+
+LAGERUNG: Default kleine Kapazitäten, haltbare Staples + wenige Frischprodukte + TK-Gemüse. Bei anderen Angaben anpassen.
+
+BUDGETLOGIK: Bei Budget: innerhalb planen. Ohne Budget: kosteneffizient nicht spartanisch. Bulk-Ware: Einmalkauf vs. Wochenverbrauch unterscheiden. Unrealistisches Budget: offen begründen + Substitutionen.
+
+SPORTLOGIK: Sport nicht verpflichtend. Wenn Sport: Protein, Carbs, Timing anpassen. Trainingstage: Kalorienbedarf, Proteinbedarf, Pre-/Post-Workout berücksichtigen.
+
+MEAL-PREP-LOGIK: Es gibt drei Modi. "kein meal prep": Jede Mahlzeit frisch oder maximal 1 Tag Reste, kein extra Kochblock. "kleine batches erlaubt": Beim normalen Kochen automatisch mehr zubereiten und Reste gezielt in den Folgetagen einplanen — kein separater Prep-Block nötig. "meal prep erlaubt": An einem festgelegten Prep-Tag (im Prompt angegeben) wird ein dedizierter Kochblock eingeplant, der mehrere Mahlzeiten für die Woche vorbereitet. In diesem Modus im Menüplan explizit vermerken was wann vorgekocht wird und welche Tage davon profitieren.
+
+KALORIENLOGIK: Wenn ein Kalorien-Grundumsatz (calorie_base_rate) angegeben ist, ist das der Ruheumsatz oder TDEE ohne Sport. An Trainingstagen den Gesamtbedarf durch Addition erhöhen (Schätzung: Leicht 150–250 kcal, Mittel 300–500 kcal, Hoch 500–700 kcal). Wenn Trainingspläne namentlich angegeben sind (z. B. Zwift, 5-km-Lauf), realistische Kalorienverbrauchswerte schätzen. Alle Kalorienannahmen als solche markieren.
+
+REGIONAL/SAISONAL: Wenn "Regionale Produkte bevorzugen" aktiv: Produkte aus Deutschland oder angrenzenden Regionen bevorzugen, importierte Exoten nur wenn keine regionale Alternative. Wenn "Saisonale Lebensmittel bevorzugen" aktiv: Das aktuelle Datum im Prompt auswerten und nur Obst und Gemüse wählen, das in Deutschland gerade Saison hat. Produkte außerhalb der Saison nur wenn der Nutzer explizit keine saisonale Einschränkung wünscht.
+
+NÄHRSTOFFLOGIK (Wochenschnitt): Kalorien, Protein, KH, Fett, Ballaststoffe, Omega-3, Calcium, Eisen, Zink, Jod, Selen, B12, Vitamin D, Riboflavin robust abdecken. Lücken benennen + Korrekturmaßnahme.
+
+MAKROREGELN: Protein knapp → zuerst Linsen/Bohnen/Sojaprodukte erhöhen, NICHT Öl/Nüsse/Nussmus. Fette deckeln wenn Ziele gesprengt. 2 Proteinanker/Tag wenn Protein relevant.
+
+EINKAUF: Plan auf angegebene Läden abstimmen. Mehrere Läden intelligent aufteilen. Kein Laden angegeben: generische deutsche Discounterlogik.
+
+DATENROLLEN: 'kassenzettel' = historische Einkaufsbelege — NUR für Preisreferenz und Kostenplanung nutzen, NICHT als vorhandene Vorräte interpretieren. Was tatsächlich vorhanden ist, steht ausschließlich in 'pantry_items', 'fridge_items', 'freezer_items', 'bulk_products_owned' und 'perishables_to_use_up'. In der Einkaufsliste nur die Pantry/Fridge/Freezer-Einträge als "vorhanden" kennzeichnen, Kassenzettel-Produkte grundsätzlich als "kaufen" aufführen.
+
+VARIANZ: Nutzergesteuert (niedrig/mittel/hoch). Default: mittel. Bei starkem Budget-/Zeitfokus: Wiederholungen erlauben.
+
+PFLICHTAUSGABE (diese 12 Abschnitte immer):
+1) Annahmen & Wochenkontext
+2) Wochenziele Tabelle: Tag | Belastung | Kalorien-Zielkorridor | Protein-Zielkorridor | Fokus
+3) Menüplan Tabelle: Tag | Frühstück | Mittag | Abend | Zeit | Kosten | Notizen
+4) Koch- und Restelogik
+5) Frühstücks-Templates (2-3 Varianten mit g/kcal/Protein/Kosten)
+6) Schnellgerichte-Baukasten (Name/Zeit/Schritte/Mengen/Kosten/Protein/Verwendung)
+7) Einkaufsliste (gruppiert, mit Ladenbezug, Kennzeichnung: kaufen/Staple/optional/vorhanden)
+8) Kostenschätzung (Einzelposten + Gesamt + ggf. Kassenbon vs. Wochenverbrauch)
+9) Nährstoff-Check Tabelle: Nährstoff | Quellen | Einschätzung + Korrekturen
+10) Supplement- und Praxis-Hinweise (B12/Vitamin D/Jod/Pre-Post-Workout/Notfallmahlzeiten)
+11) Wochen-Review-Regeln (3 Scheiterpunkte, 3 Korrekturen)
+12) Gerichtsliste kompakt
+
+VERHALTEN: Keine vollständigen Rezepte, nur kurze Zubereitungshinweise. Entscheidungsfreudig. Unsicherheiten kennzeichnen. Nicht auf diesen Prompt verweisen. Reale Daten aktiv nutzen. Genussartikel nicht moralisch bewerten.`;
+
+/* ─────────────────────────────────────────────────────────────────
+   Model registry  (max_output_tokens per model, Responses API for all)
+   Source: https://developers.openai.com/api/docs/models
+──────────────────────────────────────────────────────────────────*/
+const MODEL_CONFIG = {
+  // GPT-5 Frontier
+  'gpt-5.4':         { maxOut: 32768, reasoning: false, label: 'GPT-5.4 (128K ctx, 128K out)' },
+  'gpt-5.4-pro':     { maxOut: 32768, reasoning: true,  label: 'GPT-5.4 pro (128K ctx, 128K out)' },
+  'gpt-5-mini':      { maxOut: 32768, reasoning: true,  label: 'GPT-5 mini (400K ctx, 128K out)' },
+  'gpt-5-nano':      { maxOut: 16384, reasoning: false, label: 'GPT-5 nano (fast, 128K out)' },
+  'gpt-5':           { maxOut: 32768, reasoning: true,  label: 'GPT-5 (konfig. Reasoning, 128K out)' },
+  'gpt-5-pro':       { maxOut: 32768, reasoning: true,  label: 'GPT-5 pro (128K out)' },
+  // GPT-4.1
+  'gpt-4.1':         { maxOut: 32768, reasoning: false, label: 'GPT-4.1 (1M ctx, 32K out)' },
+  'gpt-4.1-mini':    { maxOut: 16384, reasoning: false, label: 'GPT-4.1 mini (1M ctx, 32K out)' },
+  'gpt-4.1-nano':    { maxOut:  8192, reasoning: false, label: 'GPT-4.1 nano (1M ctx, 8K out)' },
+  // GPT-4o
+  'gpt-4o':          { maxOut: 16384, reasoning: false, label: 'GPT-4o (128K ctx, 16K out)' },
+  'gpt-4o-mini':     { maxOut: 16384, reasoning: false, label: 'GPT-4o mini (128K ctx, 16K out)' },
+  // o-series
+  'o4-mini':         { maxOut: 32768, reasoning: true,  label: 'o4-mini (Reasoning, 100K out)' },
+  'o3':              { maxOut: 32768, reasoning: true,  label: 'o3 (Reasoning, 100K out)' },
+  'o3-pro':          { maxOut: 32768, reasoning: true,  label: 'o3-pro (Reasoning, 100K out)' },
+};
+const MODEL_DEFAULT_MAXOUT = 16384;
+
+/* ─────────────────────────────────────────────────────────────────
+   Custom model-ID toggle
+──────────────────────────────────────────────────────────────────*/
+function syncModelInput(sel) {
+  const customField = R('api_model_custom');
+  const infoEl      = R('api_model_info');
+  const isCustom    = sel.value === '__custom__';
+  customField.style.display = isCustom ? '' : 'none';
+  if (isCustom) {
+    customField.focus();
+    if (infoEl) infoEl.textContent = '';
+  } else {
+    const cfg = MODEL_CONFIG[sel.value];
+    if (infoEl) infoEl.textContent = cfg ? `ℹ️ ${cfg.label}` : '';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Card toggle
+──────────────────────────────────────────────────────────────────*/
+function toggleCard(header) {
+  const body = header.nextElementSibling;
+  const isCollapsed = body.classList.toggle('collapsed');
+  header.classList.toggle('collapsed', isCollapsed);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Meal Prep day-picker toggle
+──────────────────────────────────────────────────────────────────*/
+function toggleMealPrep(val) {
+  const field = R('meal_prep_day_field');
+  if (field) field.style.display = (val === 'meal prep erlaubt') ? '' : 'none';
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Liter input toggle (fridge / freezer Indiv. option)
+─────────────────────────────────────────────────────────────────*/
+function toggleLiters(which) {
+  const val = radioVal(which + '_size');
+  const row = R(which + '_liters_row');
+  if (row) row.style.display = (val === 'individuell') ? '' : 'none';
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Sync To-go days from Office days (auto-check, manual override OK)
+──────────────────────────────────────────────────────────────────*/
+function syncTogoFromOffice() {
+  const officeCbs = [...document.querySelectorAll('#office_days input[type=checkbox]')];
+  const togoCbs   = [...document.querySelectorAll('#togo_days input[type=checkbox]')];
+  officeCbs.forEach(ocb => {
+    if (ocb.checked) {
+      const match = togoCbs.find(t => t.value === ocb.value);
+      if (match) match.checked = true;
+    }
+  });
+  scheduleAutosave();
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Week date helpers
+──────────────────────────────────────────────────────────────────*/
+function isoDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+function getISOWeek(d) {
+  const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = tmp.getUTCDay() || 7;
+  tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+  return Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+}
+
+function setCurrentWeek() {
+  const startDayVal = parseInt(R('week_start_day').value, 10); // 0=So … 6=Sa
+  const today = new Date();
+  const todayDay = today.getDay(); // 0=So
+  let diff = (todayDay - startDayVal + 7) % 7;
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - diff);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  R('week_start').value = isoDate(weekStart);
+  R('week_end').value   = isoDate(weekEnd);
+  updateWeekLabel();
+}
+
+function updateWeekLabel() {
+  const el    = R('week_label');
+  const start = R('week_start').value;
+  const end   = R('week_end').value;
+  if (!el) return;
+  if (!start && !end) { el.textContent = ''; return; }
+  const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const kw  = start ? `KW ${getISOWeek(new Date(start + 'T00:00:00'))}` : '';
+  el.textContent = [kw, start ? fmt(start) : '', end ? '– ' + fmt(end) : ''].filter(Boolean).join('  ');
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Receipt / image analysis (GPT-4o Vision)
+──────────────────────────────────────────────────────────────────*/
+const RECEIPT_DB_KEY = 'vmp_receipt_db';
+
+function loadReceiptDb() {
+  try { return JSON.parse(localStorage.getItem(RECEIPT_DB_KEY) || '[]'); } catch { return []; }
+}
+
+function saveReceiptDb(db) {
+  localStorage.setItem(RECEIPT_DB_KEY, JSON.stringify(db));
+  updateDbBadges();
+}
+
+function addReceiptRow() {
+  const db = loadReceiptDb();
+  db.push({ datum: new Date().toLocaleDateString('de-DE'), laden:'', name:'', menge:'', preis:'', menge_guess: false });
+  saveReceiptDb(db);
+  const body = R('dsh-body-receipt');
+  if (body) { body.classList.remove('collapsed'); body.previousElementSibling.classList.remove('collapsed'); }
+  initReceiptSection();
+}
+
+function updateReceiptLabel(input) {
+  const lbl = document.getElementById('receipt_file_label');
+  if (!lbl) return;
+  lbl.textContent = input.files.length
+    ? Array.from(input.files).map(f => f.name).join(', ')
+    : 'Keine Dateien ausgewählt';
+}
+
+async function analyzeReceiptImages() {
+  const apiKey = localStorage.getItem('vmp_api_key') || '';
+  if (!apiKey) { showToast('Kein API-Key hinterlegt.'); return; }
+  const files = R('receipt_files').files;
+  if (!files.length) { showToast('Keine Dateien ausgewählt.'); return; }
+  showToast(`Analysiere ${files.length} Bild(er) …`);
+
+  const toBase64 = f => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  });
+
+  const imageContent = [];
+  for (const f of files) {
+    const b64 = await toBase64(f);
+    imageContent.push({ type: 'input_image', image_url: `data:${f.type};base64,${b64}` });
+  }
+  imageContent.push({ type: 'input_text', text:
+    'Extrahiere alle Produkte aus diesem Kassenzettel/Foto als JSON-Array. ' +
+    'Jedes Element hat folgende Felder: {"name":"...","menge":"...","menge_guess":false,"preis":"...","laden":""}. ' +
+    'Regeln für "menge": ' +
+    '1. Steht die Menge/Gewicht/Volumen direkt auf dem Beleg (z. B. "500 g", "2 l", "1,800 kg x 1,99 EUR/kg", "2 x 750 g", "1 Stange", "750 ml"), trage sie exakt ein und setze menge_guess: false. ' +
+    '2. Steht die Menge im Produktnamen oder der Beschreibung (z. B. "Haferdrink 1,8%" enthält keine Mengenangabe, aber "Rapsöl kaltgepresst 750 ml" enthält sie), extrahiere sie aus dem Namen und setze menge_guess: false. ' +
+    '3. Ist keine Menge erkennbar, treffe eine realistische Annahme auf Basis typischer Verpackungsgrößen (z. B. Joghurt 500 g, Öl 750 ml, Brot 500 g) und setze menge_guess: true als Hinweis dass es eine Schätzung ist. ' +
+    'Beim "menge"-Wert keine EUR-Angaben mit einschließen — nur Menge/Gewicht/Volumen/Stück. ' +
+    'Antworte nur mit dem JSON-Array, kein Markdown.' });
+
+  try {
+    const resp = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: 'gpt-4o', input: [{ role: 'user', content: imageContent }], max_output_tokens: 2048 })
+    });
+    const data = await resp.json();
+    let text = '';
+    if (data.output) {
+      const msg = data.output.find(o => o.type === 'message');
+      if (msg && msg.content) {
+        const c = msg.content.find(c => c.type === 'output_text');
+        if (c) text = c.text;
+      }
+    }
+    const clean = text.replace(/```[a-z]*\n?/g, '').replace(/```/g, '').trim();
+    let items;
+    try { items = JSON.parse(clean); } catch { showToast('Antwort nicht parsebar: ' + clean.slice(0, 80)); return; }
+    const ts = new Date().toLocaleDateString('de-DE');
+    const newItems = items.map(it => ({
+      ...it,
+      datum: ts,
+      menge: normalizeMenge(it.menge || ''),
+      menge_guess: !!it.menge_guess
+    }));
+    const db = loadReceiptDb();
+    const merged = deduplicateDb([...db, ...newItems]);
+    const added = merged.length - deduplicateDb(db).length;
+    saveReceiptDb(merged);
+    showToast(`${newItems.length} analysiert, ${merged.length} Einträge gesamt (Duplikate zusammengeführt).`);
+    showReceiptDb();
+  } catch (err) {
+    showToast('Fehler: ' + err.message);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Shared multi-format file analysis for Tracking / Produkte / Bestellungen
+─────────────────────────────────────────────────────────────────*/
+const DATA_ANALYSIS_CONFIG = {
+  receipt: {
+    cols: ['datum','laden','name','menge','preis'],
+    labels: ['Datum','Laden','Produkt','Menge','Preis (€)'],
+    title: 'Kassenzettel',
+    instruction:
+      'Extrahiere alle Produkte aus diesen Kassenzetteln/Fotos als JSON-Array. ' +
+      'Jedes Element hat exakt diese Felder: ' +
+      '{"datum":"TT.MM.JJJJ","laden":"Shopname","name":"Produktname","menge":"z.B. 500 g","preis":"z.B. 1.99"}. ' +
+      'Fehlende Werte als leeren String "". Antworte nur mit dem JSON-Array, kein Markdown.',
+    loadFn: () => { try { return JSON.parse(localStorage.getItem('vmp_receipt_db')||'[]'); } catch { return []; } },
+    saveFn: db => localStorage.setItem('vmp_receipt_db', JSON.stringify(db)),
+    renderFn: () => { if(R('receipt-db-tbody')) renderReceiptTable(); updateDbBadges(); },
+    openFn: () => { const b=R('dsh-body-receipt'); if(b){b.classList.remove('collapsed');b.previousElementSibling.classList.remove('collapsed');} initReceiptSection(); }
+  },
+  tracking: {
+    cols: ['datum','uhrzeit','mahlzeit','produkt','menge','kalorien','protein','kh','fett','notizen'],
+    labels: ['Datum','Uhrzeit','Mahlzeit','Produkt','Menge','Kalorien','Protein (g)','KH (g)','Fett (g)','Notizen'],
+    title: 'Ernährungs-/Fitness-Tracking',
+    instruction:
+      'Extrahiere alle Ernährungs- oder Fitness-Tracking-Einträge aus diesen Daten als JSON-Array. ' +
+      'Jedes Element hat exakt diese Felder: ' +
+      '{"datum":"TT.MM.JJJJ","uhrzeit":"HH:MM","mahlzeit":"z.B. Frühstück","produkt":"Produktname","menge":"z.B. 200 g","kalorien":"z.B. 320","protein":"g","kh":"g","fett":"g","notizen":""}. ' +
+      'Fehlende Werte als leeren String "". Antworte nur mit dem JSON-Array, kein Markdown.',
+    loadFn: () => { try { return JSON.parse(localStorage.getItem('vmp_tracking_db')||'[]'); } catch { return []; } },
+    saveFn: db => localStorage.setItem('vmp_tracking_db', JSON.stringify(db)),
+    renderFn: () => { if(R('tracking-db-tbody')) renderTrackingTable(); updateDbBadges(); },
+    openFn: () => { const b=R('dsh-body-tracking'); if(b){b.classList.remove('collapsed');b.previousElementSibling.classList.remove('collapsed');} initTrackingSection(); }
+  },
+  products: {
+    cols: ['name','kategorie','marke','groesse','preis','preis100g','laden','naehrstoffe','notizen'],
+    labels: ['Name','Kategorie','Marke','Größe/Menge','Preis (€)','€/100g','Laden','Nährstoffinfo','Notizen'],
+    title: 'Produktdaten',
+    instruction:
+      'Extrahiere alle Produktdaten aus diesen Daten als JSON-Array. ' +
+      'Jedes Element hat exakt diese Felder: ' +
+      '{"name":"Produktname","kategorie":"z.B. Getreide","marke":"Herstellermarke","groesse":"z.B. 500 g","preis":"z.B. 2.49","preis100g":"z.B. 0.50","laden":"z.B. REWE","naehrstoffe":"z.B. Kal:350 P:12g KH:65g F:4g","notizen":""}. ' +
+      'Fehlende Werte als leeren String "". Antworte nur mit dem JSON-Array, kein Markdown.',
+    loadFn: () => { try { return JSON.parse(localStorage.getItem('vmp_products_db')||'[]'); } catch { return []; } },
+    saveFn: db => localStorage.setItem('vmp_products_db', JSON.stringify(db)),
+    renderFn: () => { if(R('products-db-tbody')) renderProductsTable(); updateDbBadges(); },
+    openFn: () => { const b=R('dsh-body-products'); if(b){b.classList.remove('collapsed');b.previousElementSibling.classList.remove('collapsed');} initProductsSection(); }
+  },
+  orders: {
+    cols: ['datum','shop','bestellnr','produkt','menge','preis','status','notizen'],
+    labels: ['Datum','Shop/Händler','Bestellnr.','Produkt','Menge','Preis (€)','Status','Notizen'],
+    title: 'Bestelldaten',
+    instruction:
+      'Extrahiere alle Bestelldaten aus diesen Daten als JSON-Array. ' +
+      'Jedes Element hat exakt diese Felder: ' +
+      '{"datum":"TT.MM.JJJJ","shop":"z.B. Amazon","bestellnr":"Bestellnummer","produkt":"Produktname","menge":"z.B. 2 St","preis":"z.B. 5.99","status":"z.B. geliefert","notizen":""}. ' +
+      'Fehlende Werte als leeren String "". Antworte nur mit dem JSON-Array, kein Markdown.',
+    loadFn: () => { try { return JSON.parse(localStorage.getItem('vmp_orders_db')||'[]'); } catch { return []; } },
+    saveFn: db => localStorage.setItem('vmp_orders_db', JSON.stringify(db)),
+    renderFn: () => { if(R('orders-db-tbody')) renderOrdersTable(); updateDbBadges(); },
+    openFn: () => { const b=R('dsh-body-orders'); if(b){b.classList.remove('collapsed');b.previousElementSibling.classList.remove('collapsed');} initOrdersSection(); }
+  },
+  trainingdata: {
+    cols: ['datum','aktivitaet','titel','dauer','distanz_km','kalorien','hf_avg','hf_max','leistung_avg','np','tss','anstieg_m','aerober_te','notizen'],
+    labels: ['Datum','Aktivitätstyp','Titel','Dauer','Distanz (km)','Kalorien','Ø Herzfrequenz','HF Max','Ø Leistung (W)','NP® (W)','TSS®','Anstieg (m)','Aerober TE','Notizen'],
+    title: 'Trainingsdaten (Garmin)',
+    instruction:
+      'Extrahiere alle Trainingseinheiten aus diesem Garmin-Export als JSON-Array. ' +
+      'Das Eingabeformat ist eine CSV mit den Spalten: Aktivitätstyp, Datum, Titel, Distanz, Kalorien, Zeit, Ø Herzfrequenz, Maximale Herzfrequenz, Ø Leistung, Normalized Power® (NP®), Training Stress Score®, Anstieg gesamt, Aerober TE sowie weiteren Spalten die ignoriert werden können. ' +
+      'Das Datumsformat der Eingabe ist YYYY-MM-DD HH:MM:SS — wandle es in TT.MM.JJJJ um. ' +
+      'Jedes Element im Ausgabe-Array hat exakt diese Felder: ' +
+      '{"datum":"TT.MM.JJJJ","aktivitaet":"z.B. Virtuelles Radfahren","titel":"z.B. Zwift - Tempo","dauer":"HH:MM:SS","distanz_km":"z.B. 32.69","kalorien":"z.B. 641","hf_avg":"z.B. 116","hf_max":"z.B. 153","leistung_avg":"z.B. 129","np":"z.B. 142","tss":"z.B. 0.0","anstieg_m":"z.B. 327","aerober_te":"z.B. 3.6","notizen":""}. ' +
+      'Fehlende oder "--" Werte als leeren String "". Antworte nur mit dem JSON-Array, kein Markdown.',
+    loadFn: () => { try { return JSON.parse(localStorage.getItem('vmp_trainingdata_db')||'[]'); } catch { return []; } },
+    saveFn: db => localStorage.setItem('vmp_trainingdata_db', JSON.stringify(db)),
+    renderFn: () => { if(R('trainingdata-db-tbody')) renderTrainingDataTable(); updateDbBadges(); },
+    openFn: () => { const b=R('dsh-body-trainingdata'); if(b){b.classList.remove('collapsed');b.previousElementSibling.classList.remove('collapsed');} initTrainingDataSection(); }
+  }
+};
+
+async function analyzeDataFiles(key) {
+  const cfg = DATA_ANALYSIS_CONFIG[key];
+  if (!cfg) return;
+  const apiKey = localStorage.getItem('vmp_api_key') || '';
+  if (!apiKey) { showToast('Kein API-Key hinterlegt.'); return; }
+  const files = R(key + '_files').files;
+  if (!files.length) { showToast('Keine Dateien ausgewählt.'); return; }
+  showToast(`Analysiere ${files.length} Datei(en) für ${cfg.title} …`);
+
+  const toBase64 = f => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  });
+  const toText = f => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsText(f, 'UTF-8');
+  });
+
+  const content = [];
+  for (const f of files) {
+    if (f.type.startsWith('image/')) {
+      const b64 = await toBase64(f);
+      content.push({ type: 'input_image', image_url: `data:${f.type};base64,${b64}` });
+    } else {
+      let text;
+      try { text = await toText(f); } catch { text = `[Datei ${f.name} konnte nicht gelesen werden]`; }
+      content.push({ type: 'input_text', text: `--- Datei: ${f.name} ---\n${text}` });
+    }
+  }
+  content.push({ type: 'input_text', text: cfg.instruction });
+
+  try {
+    const resp = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: 'gpt-4o', input: [{ role: 'user', content }], max_output_tokens: 4096 })
+    });
+    const data = await resp.json();
+    let text = '';
+    if (data.output) {
+      const msg = data.output.find(o => o.type === 'message');
+      if (msg?.content) {
+        const c = msg.content.find(c => c.type === 'output_text');
+        if (c) text = c.text;
+      }
+    }
+    if (!text && data.error) { showToast('API-Fehler: ' + (data.error.message || JSON.stringify(data.error))); return; }
+    const clean = text.replace(/```[a-z]*\n?/g, '').replace(/```/g, '').trim();
+    let items;
+    try { items = JSON.parse(clean); } catch { showToast('Antwort nicht parsebar: ' + clean.slice(0, 80)); return; }
+    if (!Array.isArray(items)) { showToast('Unerwartetes Format (kein Array).'); return; }
+    const db = cfg.loadFn();
+    const merged = [...db, ...items];
+    cfg.saveFn(merged);
+    cfg.openFn();
+    showToast(`✅ ${items.length} Einträge analysiert, ${merged.length} gesamt.`);
+  } catch (err) {
+    showToast('Fehler: ' + err.message);
+  }
+}
+
+function showAnalysisPrompt(key) {
+  const cfg = DATA_ANALYSIS_CONFIG[key];
+  if (!cfg) return;
+  const titles = { receipt: '🧾 Kassenzettel', tracking: '📊 Trackingdaten', products: '📦 Produkte', orders: '🛒 Bestellungen', trainingdata: '🏋️ Trainingsdaten' };
+  const schemaRows = cfg.cols.map((c, i) => `  "${c}": "${cfg.labels[i]}"`).join(',\n');
+  const promptText =
+`Du bist ein Daten-Extraktions-Assistent.
+
+Aufgabe: Extrahiere alle relevanten Einträge (${cfg.title}) aus dem folgenden Inhalt und gib sie als JSON-Array zurück.
+
+Jedes Element muss exakt diese Felder haben:
+{
+${schemaRows}
+}
+
+Regeln:
+- Fehlende Werte als leeren String "" eintragen.
+- Datumsformat: TT.MM.JJJJ
+- Preise als Dezimalzahl (z.B. "2.49"), kein Währungszeichen.
+- Antworte NUR mit dem JSON-Array — kein Markdown, kein erklärender Text.
+
+--- DEIN INHALT (hier einfügen) ---
+
+
+---`;
+
+  R('analysis-prompt-title').textContent = `📝 Prompt: ${titles[key] || cfg.title}`;
+  R('analysis-prompt-textarea').value = promptText;
+  R('analysis-prompt-overlay').classList.add('open');
+}
+
+function closeAnalysisPrompt() {
+  R('analysis-prompt-overlay').classList.remove('open');
+}
+
+function copyAnalysisPrompt() {
+  const ta = R('analysis-prompt-textarea');
+  ta.select();
+  try {
+    navigator.clipboard.writeText(ta.value).then(() => showToast('✅ Prompt kopiert!'));
+  } catch {
+    document.execCommand('copy');
+    showToast('✅ Prompt kopiert!');
+  }
+}
+
+function initReceiptSection() {
+  const area = R('receipt-db-area');
+  if (!area) return;
+  if (!R('receipt-db-tbody')) {
+    area.innerHTML =
+      '<input id="rdb-search" class="receipt-db-search" placeholder="\uD83D\uDD0D Suche in allen Spalten \u2026" oninput="renderReceiptTable()">'+
+      '<div class="receipt-db-filter-row">'+
+        '<span>Spaltenfilter:</span>'+
+        '<input id="rdb-f-datum" placeholder="Datum" oninput="renderReceiptTable()">'+
+        '<input id="rdb-f-laden" placeholder="Laden" oninput="renderReceiptTable()">'+
+        '<input id="rdb-f-name" placeholder="Name" oninput="renderReceiptTable()">'+
+        '<input id="rdb-f-menge" placeholder="Menge" oninput="renderReceiptTable()">'+
+        '<input id="rdb-f-preis" placeholder="Preis" oninput="renderReceiptTable()">'+
+      '</div>'+
+      '<div class="receipt-db-scroll">'+
+        '<table><thead><tr><th>#</th><th>Datum</th><th>Laden</th><th>Name</th><th>Menge</th><th>Preis</th><th></th></tr></thead>'+
+        '<tbody id="receipt-db-tbody"></tbody></table>'+
+      '</div>'+
+      '<div class="receipt-db-btn-row">'+
+        '<button class="btn-small" onclick="exportReceiptDbJSON()">\u2B07\uFE0F JSON</button>'+
+        '<button class="btn-small" onclick="exportReceiptDbCSV()">\u2B07\uFE0F CSV</button>'+
+        '<button class="btn-small" onclick="R(\'rdb-import-file\').click()">\u2B06\uFE0F JSON</button>'+
+        '<input type="file" id="rdb-import-file" accept=".json" style="display:none" onchange="handleReceiptDbImport(this)">'+
+        '<button class="btn-small" style="margin-left:auto;border-color:#fca5a5;color:#b91c1c" onclick="clearReceiptDb()">\uD83D\uDDD1 Alle l\u00f6schen</button>'+
+      '</div>';
+  }
+  renderReceiptTable();
+  updateDbBadges();
+}
+
+function showReceiptDb() {
+  const body = R('dsh-body-receipt');
+  if (body) {
+    body.classList.remove('collapsed');
+    const hdr = body.previousElementSibling;
+    if (hdr) hdr.classList.remove('collapsed');
+  }
+  initReceiptSection();
+}
+
+function renderReceiptTable() {
+  const tbody = R('receipt-db-tbody');
+  if (!tbody) return;
+  const db = loadReceiptDb();
+  const search = (R('rdb-search')?.value || '').toLowerCase();
+  const fDatum = (R('rdb-f-datum')?.value || '').toLowerCase();
+  const fLaden = (R('rdb-f-laden')?.value || '').toLowerCase();
+  const fName  = (R('rdb-f-name')?.value  || '').toLowerCase();
+  const fMenge = (R('rdb-f-menge')?.value || '').toLowerCase();
+  const fPreis = (R('rdb-f-preis')?.value || '').toLowerCase();
+  const filtered = [];
+  db.forEach((row, i) => {
+    const all = [row.datum||'', row.laden||'', row.name||'', row.menge||'', row.preis||''];
+    if (search && !all.join(' ').toLowerCase().includes(search)) return;
+    if (fDatum && !(row.datum||'').toLowerCase().includes(fDatum)) return;
+    if (fLaden && !(row.laden||'').toLowerCase().includes(fLaden)) return;
+    if (fName  && !(row.name||'').toLowerCase().includes(fName))   return;
+    if (fMenge && !(row.menge||'').toLowerCase().includes(fMenge)) return;
+    if (fPreis && !(row.preis||'').toLowerCase().includes(fPreis)) return;
+    filtered.push({ row, i });
+  });
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:.8rem">'+(db.length ? 'Keine Eintr\u00E4ge gefunden.' : 'Noch keine Eintr\u00E4ge.')+'</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(({ row, i }) => {
+    const mengeTd = row.menge_guess
+      ? `<td class="menge-guess-cell" onclick="clearMengeGuessOnEdit(${i}, this)" title="Annahme (klicken zum Bearbeiten)">`+
+        `<span class="guess-val">${row.menge||'?'}</span> `+
+        `<button class="guess-btn" onclick="event.stopPropagation();confirmMengeGuess(${i})" title="Annahme übernehmen">❓</button></td>`
+      : `<td contenteditable="true" onblur="updateReceiptRow(${i},'menge',this.textContent)">${row.menge||''}</td>`;
+    return `<tr><td>${i+1}</td>`+
+      `<td contenteditable="true" onblur="updateReceiptRow(${i},'datum',this.textContent)">${row.datum||''}</td>`+
+      `<td contenteditable="true" onblur="updateReceiptRow(${i},'laden',this.textContent)">${row.laden||''}</td>`+
+      `<td contenteditable="true" onblur="updateReceiptRow(${i},'name',this.textContent)">${row.name||''}</td>`+
+      mengeTd+
+      `<td contenteditable="true" onblur="updateReceiptRow(${i},'preis',this.textContent)">${row.preis||''}</td>`+
+      `<td><span style="cursor:pointer;color:#c0392b" onclick="deleteReceiptRow(${i})" title="L\u00F6schen">\u2715</span></td></tr>`;
+  }).join('');
+}
+
+function updateReceiptRow(idx, field, val) {
+  const db = loadReceiptDb();
+  if (db[idx]) { db[idx][field] = val.trim(); saveReceiptDb(db); }
+}
+
+function deleteReceiptRow(idx) {
+  const db = loadReceiptDb();
+  db.splice(idx, 1);
+  saveReceiptDb(db);
+  renderReceiptTable();
+}
+
+function clearReceiptDb() {
+  if (!confirm('Alle Einträge löschen?')) return;
+  localStorage.removeItem(RECEIPT_DB_KEY);
+  renderReceiptTable();
+  updateDbBadges();
+}
+
+function _exportDateStr() {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function exportReceiptDbJSON() {
+  const db = loadReceiptDb();
+  if (!db.length) { showToast('Datenbank ist leer.'); return; }
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `vmp_belege_${_exportDateStr()}.json`;
+  a.click();
+  showToast(`✅ ${db.length} Einträge als JSON exportiert`);
+}
+
+function exportReceiptDbCSV() {
+  _exportCSV(loadReceiptDb(),
+    [{key:'datum',label:'Datum'},{key:'laden',label:'Laden'},{key:'name',label:'Name'},{key:'menge',label:'Menge'},{key:'preis',label:'Preis (€)'}],
+    `vmp_kassenzettel_${_exportDateStr()}.csv`);
+}
+
+function handleReceiptDbImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!Array.isArray(imported)) throw new Error('Kein Array');
+      const existing = loadReceiptDb();
+      const merged = deduplicateDb([...existing, ...imported]);
+      const added = merged.length - deduplicateDb(existing).length;
+      saveReceiptDb(merged);
+      renderReceiptTable();
+      showToast(`✅ ${imported.length} importiert, ${added} neu, ${merged.length} gesamt`);
+    } catch(err) {
+      showToast('❌ Import fehlgeschlagen: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function exportAllDataJSON() {
+  const allData = {
+    receipt:      loadReceiptDb(),
+    tracking:     loadTrackingDb(),
+    products:     loadProductsDb(),
+    orders:       loadOrdersDb(),
+    trainingdata: loadTrainingDataDb()
+  };
+  const total = Object.values(allData).reduce((s, a) => s + a.length, 0);
+  if (!total) { showToast('Alle Tabellen sind leer.'); return; }
+  const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `vmp_alle_daten_${_exportDateStr()}.json`;
+  a.click();
+  showToast(`✅ ${total} Einträge aus allen Tabellen exportiert`);
+}
+
+function handleAllDataImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      let imported = 0;
+      if (Array.isArray(data.receipt))      { const m = deduplicateDb([...loadReceiptDb(),      ...data.receipt]);      saveReceiptDb(m);           initReceiptSection();       imported += data.receipt.length; }
+      if (Array.isArray(data.tracking))     { const m = deduplicateDb([...loadTrackingDb(),     ...data.tracking]);     saveTrackingDb(m);          initTrackingSection();      imported += data.tracking.length; }
+      if (Array.isArray(data.products))     { const m = deduplicateDb([...loadProductsDb(),     ...data.products]);     saveProductsDb(m);          initProductsSection();      imported += data.products.length; }
+      if (Array.isArray(data.orders))       { const m = deduplicateDb([...loadOrdersDb(),       ...data.orders]);       saveOrdersDb(m);            initOrdersSection();        imported += data.orders.length; }
+      if (Array.isArray(data.trainingdata)) { const m = deduplicateDb([...loadTrainingDataDb(), ...data.trainingdata]); saveTrainingDataDb(m);      initTrainingDataSection();  imported += data.trainingdata.length; }
+      showToast(`✅ ${imported} Einträge importiert`);
+    } catch(err) {
+      showToast('❌ Import fehlgeschlagen: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function confirmMengeGuess(idx) {
+  const db = loadReceiptDb();
+  if (!db[idx]) return;
+  db[idx].menge_guess = false;
+  saveReceiptDb(db);
+  renderReceiptTable();
+}
+
+function clearMengeGuessOnEdit(idx, el) {
+  const db = loadReceiptDb();
+  if (!db[idx]) return;
+  db[idx].menge = '';
+  db[idx].menge_guess = false;
+  saveReceiptDb(db);
+  el.className = '';
+  el.removeAttribute('onclick');
+  el.removeAttribute('title');
+  el.setAttribute('contenteditable', 'true');
+  el.setAttribute('onblur', `updateReceiptRow(${idx},'menge',this.textContent)`);
+  el.innerHTML = '';
+  el.focus();
+}
+
+function normalizeMenge(menge) {
+  if (!menge) return '';
+  const s = menge.trim();
+  // Remove any EUR/price parts (e.g. "1,800 kg x 1,99 EUR/kg" → "1.8 kg")
+  const clean = s.replace(/\s*x\s*[\d,.]+\s*(EUR|\u20ac)[\w/]*/gi, '').trim();
+  const gMatch = clean.match(/^([\d,.]+)\s*g$/i);
+  if (gMatch) {
+    const g = parseFloat(gMatch[1].replace(',', '.'));
+    if (g >= 1000) return (g / 1000).toString().replace('.', ',') + ' kg';
+    return Math.round(g) + ' g';
+  }
+  const mlMatch = clean.match(/^([\d,.]+)\s*ml$/i);
+  if (mlMatch) {
+    const ml = parseFloat(mlMatch[1].replace(',', '.'));
+    if (ml >= 1000) return (ml / 1000).toString().replace('.', ',') + ' l';
+    return Math.round(ml) + ' ml';
+  }
+  const kgMatch = clean.match(/^([\d,.]+)\s*kg$/i);
+  if (kgMatch) {
+    const kg = parseFloat(kgMatch[1].replace(',', '.'));
+    return kg.toString().replace('.', ',') + ' kg';
+  }
+  return clean || s;
+}
+
+function normalizeName(name) {
+  return (name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+function parseDatum(s) {
+  if (!s) return new Date(0);
+  const p = s.split('.');
+  if (p.length === 3) return new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
+  return new Date(s);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Sub-section toggle (H) Belege)
+──────────────────────────────────────────────────────────────────*/
+function toggleDataSubsection(header, key) {
+  const body = header.nextElementSibling;
+  const collapsed = body.classList.toggle('collapsed');
+  header.classList.toggle('collapsed', collapsed);
+  if (!collapsed) {
+    if (key === 'receipt')       initReceiptSection();
+    else if (key === 'tracking') initTrackingSection();
+    else if (key === 'products') initProductsSection();
+    else if (key === 'orders')      initOrdersSection();
+    else if (key === 'trainingdata') initTrainingDataSection();
+  }
+}
+
+function updateDbBadges() {
+  const set = (id, n) => { const el = R(id); if (el) el.textContent = n || '0'; };
+  set('badge-receipt',       loadReceiptDb().length);
+  set('badge-tracking',      loadTrackingDb().length);
+  set('badge-products',      loadProductsDb().length);
+  set('badge-orders',        loadOrdersDb().length);
+  set('badge-trainingdata',  loadTrainingDataDb().length);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Generic CSV export / JSON import helpers
+──────────────────────────────────────────────────────────────────*/
+function _exportCSV(data, columns, filename) {
+  if (!data.length) { showToast('Keine Daten zum Exportieren.'); return; }
+  const header = columns.map(c => '"' + c.label.replace(/"/g,'""') + '"').join(';');
+  const rows = data.map(row =>
+    columns.map(c => '"' + (row[c.key] || '').toString().replace(/"/g,'""') + '"').join(';')
+  );
+  const csv = [header, ...rows].join('\r\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  showToast('✅ CSV exportiert');
+}
+
+function _importJSON(input, loadFn, saveFn, callback) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!Array.isArray(imported)) throw new Error('Kein Array');
+      saveFn([...loadFn(), ...imported]);
+      callback();
+      showToast(`\u2705 ${imported.length} Eintr\u00e4ge importiert`);
+    } catch(err) { showToast('\u274C Import fehlgeschlagen: ' + err.message); }
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Tracking DB  (Datum | Uhrzeit | Mahlzeit | Produkt | Menge | kcal | Prot | KH | Fett | Notizen)
+──────────────────────────────────────────────────────────────────*/
+const TRACKING_DB_KEY = 'vmp_tracking_db';
+const TRACKING_COLS   = ['datum','uhrzeit','mahlzeit','produkt','menge','kalorien','protein','kh','fett','notizen'];
+const TRACKING_LABELS = ['Datum','Uhrzeit','Mahlzeit','Produkt/Gericht','Menge','kcal','Protein (g)','KH (g)','Fett (g)','Notizen'];
+
+function loadTrackingDb()   { try { return JSON.parse(localStorage.getItem(TRACKING_DB_KEY) || '[]'); } catch { return []; } }
+function saveTrackingDb(db) { localStorage.setItem(TRACKING_DB_KEY, JSON.stringify(db)); updateDbBadges(); }
+
+function addTrackingRow() {
+  const db = loadTrackingDb();
+  db.push({ datum: new Date().toLocaleDateString('de-DE'), uhrzeit:'', mahlzeit:'', produkt:'', menge:'', kalorien:'', protein:'', kh:'', fett:'', notizen:'' });
+  saveTrackingDb(db);
+  const body = R('dsh-body-tracking');
+  if (body) { body.classList.remove('collapsed'); body.previousElementSibling.classList.remove('collapsed'); }
+  initTrackingSection();
+}
+
+function initTrackingSection() {
+  const area = R('tracking-db-area');
+  if (!area) return;
+  if (!R('tracking-db-tbody')) {
+    area.innerHTML =
+      '<input id="tdb-search" class="receipt-db-search" placeholder="\uD83D\uDD0D Suche \u2026" oninput="renderTrackingTable()">'+
+      '<div class="receipt-db-scroll">'+
+        '<table><thead><tr>'+TRACKING_LABELS.map(l=>'<th>'+l+'</th>').join('')+'<th></th></tr></thead>'+
+        '<tbody id="tracking-db-tbody"></tbody></table>'+
+      '</div>'+
+      '<div class="receipt-db-btn-row">'+
+        '<button class="btn-small" onclick="exportTrackingCSV()">\u2B07\uFE0F CSV</button>'+
+        '<button class="btn-small" onclick="exportTrackingJSON()">\u2B07\uFE0F JSON</button>'+
+        '<button class="btn-small" onclick="R(\'tdb-import-file\').click()">\u2B06\uFE0F JSON</button>'+
+        '<input type="file" id="tdb-import-file" accept=".json" style="display:none" onchange="handleTrackingImport(this)">'+
+        '<button class="btn-small" style="margin-left:auto;border-color:#fca5a5;color:#b91c1c" onclick="clearTrackingDb()">\uD83D\uDDD1 Leeren</button>'+
+      '</div>';
+  }
+  renderTrackingTable();
+}
+
+function renderTrackingTable() {
+  const tbody = R('tracking-db-tbody');
+  if (!tbody) return;
+  const db = loadTrackingDb();
+  const search = (R('tdb-search')?.value || '').toLowerCase();
+  const filtered = db.map((row,i) => ({row,i})).filter(({row}) =>
+    !search || TRACKING_COLS.some(k => (row[k]||'').toLowerCase().includes(search)));
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="'+(TRACKING_LABELS.length+1)+'" style="text-align:center;color:var(--text-muted);padding:.8rem">'+(db.length ? 'Keine Eintr\u00e4ge gefunden.' : 'Noch keine Eintr\u00e4ge \u2014 \u201e+ Zeile\u201c klicken.')+'</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(({row,i}) =>
+    '<tr>'+TRACKING_COLS.map(k =>
+      '<td contenteditable="true" onblur="updateTrackingRow('+i+',\''+k+'\',this.textContent)">'+(row[k]||'')+'</td>'
+    ).join('')+'<td><span style="cursor:pointer;color:#c0392b" onclick="deleteTrackingRow('+i+')" title="L\u00f6schen">\u2715</span></td></tr>'
+  ).join('');
+}
+
+function updateTrackingRow(idx,field,val){const db=loadTrackingDb();if(db[idx]){db[idx][field]=val.trim();saveTrackingDb(db);}}
+function deleteTrackingRow(idx){const db=loadTrackingDb();db.splice(idx,1);saveTrackingDb(db);renderTrackingTable();}
+function clearTrackingDb(){if(!confirm('Alle Trackingdaten l\u00f6schen?'))return;localStorage.removeItem(TRACKING_DB_KEY);if(R('tracking-db-tbody'))R('tracking-db-tbody').innerHTML='';updateDbBadges();}
+function exportTrackingJSON(){const db=loadTrackingDb();if(!db.length){showToast('Keine Daten.');return;}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='vmp_tracking_'+_exportDateStr()+'.json';a.click();showToast('\u2705 '+db.length+' Eintr\u00e4ge exportiert');}
+function exportTrackingCSV(){_exportCSV(loadTrackingDb(),TRACKING_COLS.map((k,i)=>({key:k,label:TRACKING_LABELS[i]})),'vmp_tracking_'+_exportDateStr()+'.csv');}
+function handleTrackingImport(input){_importJSON(input,loadTrackingDb,saveTrackingDb,()=>{if(R('tracking-db-tbody'))renderTrackingTable();updateDbBadges();});}
+
+/* ─────────────────────────────────────────────────────────────────
+   Produkte DB  (Name | Kategorie | Marke | Größe | Preis | €/100g | Laden | Nährstoffe | Notizen)
+──────────────────────────────────────────────────────────────────*/
+const PRODUCTS_DB_KEY = 'vmp_products_db';
+const PRODUCTS_COLS   = ['name','kategorie','marke','groesse','preis','preis100g','laden','naehrstoffe','notizen'];
+const PRODUCTS_LABELS = ['Name','Kategorie','Marke','Größe/Menge','Preis (€)','€/100g','Laden','Nährstoffinfo','Notizen'];
+
+function loadProductsDb()   { try { return JSON.parse(localStorage.getItem(PRODUCTS_DB_KEY) || '[]'); } catch { return []; } }
+function saveProductsDb(db) { localStorage.setItem(PRODUCTS_DB_KEY, JSON.stringify(db)); updateDbBadges(); }
+
+function addProductRow() {
+  const db = loadProductsDb();
+  db.push({ name:'', kategorie:'', marke:'', groesse:'', preis:'', preis100g:'', laden:'', naehrstoffe:'', notizen:'' });
+  saveProductsDb(db);
+  const body = R('dsh-body-products');
+  if (body) { body.classList.remove('collapsed'); body.previousElementSibling.classList.remove('collapsed'); }
+  initProductsSection();
+}
+
+function initProductsSection() {
+  const area = R('products-db-area');
+  if (!area) return;
+  if (!R('products-db-tbody')) {
+    area.innerHTML =
+      '<input id="pdb-search" class="receipt-db-search" placeholder="\uD83D\uDD0D Suche \u2026" oninput="renderProductsTable()">'+
+      '<div class="receipt-db-scroll">'+
+        '<table><thead><tr>'+PRODUCTS_LABELS.map(l=>'<th>'+l+'</th>').join('')+'<th></th></tr></thead>'+
+        '<tbody id="products-db-tbody"></tbody></table>'+
+      '</div>'+
+      '<div class="receipt-db-btn-row">'+
+        '<button class="btn-small" onclick="exportProductsCSV()">\u2B07\uFE0F CSV</button>'+
+        '<button class="btn-small" onclick="exportProductsJSON()">\u2B07\uFE0F JSON</button>'+
+        '<button class="btn-small" onclick="R(\'pdb-import-file\').click()">\u2B06\uFE0F JSON</button>'+
+        '<input type="file" id="pdb-import-file" accept=".json" style="display:none" onchange="handleProductsImport(this)">'+
+        '<button class="btn-small" style="margin-left:auto;border-color:#fca5a5;color:#b91c1c" onclick="clearProductsDb()">\uD83D\uDDD1 Leeren</button>'+
+      '</div>';
+  }
+  renderProductsTable();
+}
+
+function renderProductsTable() {
+  const tbody = R('products-db-tbody');
+  if (!tbody) return;
+  const db = loadProductsDb();
+  const search = (R('pdb-search')?.value || '').toLowerCase();
+  const filtered = db.map((row,i) => ({row,i})).filter(({row}) =>
+    !search || PRODUCTS_COLS.some(k => (row[k]||'').toLowerCase().includes(search)));
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="'+(PRODUCTS_LABELS.length+1)+'" style="text-align:center;color:var(--text-muted);padding:.8rem">'+(db.length ? 'Keine Eintr\u00e4ge gefunden.' : 'Noch keine Eintr\u00e4ge \u2014 \u201e+ Zeile\u201c klicken.')+'</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(({row,i}) =>
+    '<tr>'+PRODUCTS_COLS.map(k =>
+      '<td contenteditable="true" onblur="updateProductRow('+i+',\''+k+'\',this.textContent)">'+(row[k]||'')+'</td>'
+    ).join('')+'<td><span style="cursor:pointer;color:#c0392b" onclick="deleteProductRow('+i+')" title="L\u00f6schen">\u2715</span></td></tr>'
+  ).join('');
+}
+
+function updateProductRow(idx,field,val){const db=loadProductsDb();if(db[idx]){db[idx][field]=val.trim();saveProductsDb(db);}}
+function deleteProductRow(idx){const db=loadProductsDb();db.splice(idx,1);saveProductsDb(db);renderProductsTable();}
+function clearProductsDb(){if(!confirm('Alle Produkte l\u00f6schen?'))return;localStorage.removeItem(PRODUCTS_DB_KEY);if(R('products-db-tbody'))R('products-db-tbody').innerHTML='';updateDbBadges();}
+function exportProductsJSON(){const db=loadProductsDb();if(!db.length){showToast('Keine Daten.');return;}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='vmp_produkte_'+_exportDateStr()+'.json';a.click();showToast('\u2705 '+db.length+' Eintr\u00e4ge exportiert');}
+function exportProductsCSV(){_exportCSV(loadProductsDb(),PRODUCTS_COLS.map((k,i)=>({key:k,label:PRODUCTS_LABELS[i]})),'vmp_produkte_'+_exportDateStr()+'.csv');}
+function handleProductsImport(input){_importJSON(input,loadProductsDb,saveProductsDb,()=>{if(R('products-db-tbody'))renderProductsTable();updateDbBadges();});}
+
+/* ─────────────────────────────────────────────────────────────────
+   Bestellungen DB  (Datum | Shop | Bestellnr | Produkt | Menge | Preis | Status | Notizen)
+──────────────────────────────────────────────────────────────────*/
+const ORDERS_DB_KEY = 'vmp_orders_db';
+const ORDERS_COLS   = ['datum','shop','bestellnr','produkt','menge','preis','status','notizen'];
+const ORDERS_LABELS = ['Datum','Shop/H\u00e4ndler','Bestellnr.','Produkt','Menge','Preis (\u20ac)','Status','Notizen'];
+
+function loadOrdersDb()   { try { return JSON.parse(localStorage.getItem(ORDERS_DB_KEY) || '[]'); } catch { return []; } }
+function saveOrdersDb(db) { localStorage.setItem(ORDERS_DB_KEY, JSON.stringify(db)); updateDbBadges(); }
+
+function addOrderRow() {
+  const db = loadOrdersDb();
+  db.push({ datum: new Date().toLocaleDateString('de-DE'), shop:'', bestellnr:'', produkt:'', menge:'', preis:'', status:'offen', notizen:'' });
+  saveOrdersDb(db);
+  const body = R('dsh-body-orders');
+  if (body) { body.classList.remove('collapsed'); body.previousElementSibling.classList.remove('collapsed'); }
+  initOrdersSection();
+}
+
+function initOrdersSection() {
+  const area = R('orders-db-area');
+  if (!area) return;
+  if (!R('orders-db-tbody')) {
+    area.innerHTML =
+      '<input id="odb-search" class="receipt-db-search" placeholder="\uD83D\uDD0D Suche \u2026" oninput="renderOrdersTable()">'+
+      '<div class="receipt-db-scroll">'+
+        '<table><thead><tr>'+ORDERS_LABELS.map(l=>'<th>'+l+'</th>').join('')+'<th></th></tr></thead>'+
+        '<tbody id="orders-db-tbody"></tbody></table>'+
+      '</div>'+
+      '<div class="receipt-db-btn-row">'+
+        '<button class="btn-small" onclick="exportOrdersCSV()">\u2B07\uFE0F CSV</button>'+
+        '<button class="btn-small" onclick="exportOrdersJSON()">\u2B07\uFE0F JSON</button>'+
+        '<button class="btn-small" onclick="R(\'odb-import-file\').click()">\u2B06\uFE0F JSON</button>'+
+        '<input type="file" id="odb-import-file" accept=".json" style="display:none" onchange="handleOrdersImport(this)">'+
+        '<button class="btn-small" style="margin-left:auto;border-color:#fca5a5;color:#b91c1c" onclick="clearOrdersDb()">\uD83D\uDDD1 Leeren</button>'+
+      '</div>';
+  }
+  renderOrdersTable();
+}
+
+function renderOrdersTable() {
+  const tbody = R('orders-db-tbody');
+  if (!tbody) return;
+  const db = loadOrdersDb();
+  const search = (R('odb-search')?.value || '').toLowerCase();
+  const filtered = db.map((row,i) => ({row,i})).filter(({row}) =>
+    !search || ORDERS_COLS.some(k => (row[k]||'').toLowerCase().includes(search)));
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="'+(ORDERS_LABELS.length+1)+'" style="text-align:center;color:var(--text-muted);padding:.8rem">'+(db.length ? 'Keine Eintr\u00e4ge gefunden.' : 'Noch keine Eintr\u00e4ge \u2014 \u201e+ Zeile\u201c klicken.')+'</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(({row,i}) =>
+    '<tr>'+ORDERS_COLS.map(k =>
+      '<td contenteditable="true" onblur="updateOrderRow('+i+',\''+k+'\',this.textContent)">'+(row[k]||'')+'</td>'
+    ).join('')+'<td><span style="cursor:pointer;color:#c0392b" onclick="deleteOrderRow('+i+')" title="L\u00f6schen">\u2715</span></td></tr>'
+  ).join('');
+}
+
+function updateOrderRow(idx,field,val){const db=loadOrdersDb();if(db[idx]){db[idx][field]=val.trim();saveOrdersDb(db);}}
+function deleteOrderRow(idx){const db=loadOrdersDb();db.splice(idx,1);saveOrdersDb(db);renderOrdersTable();}
+function clearOrdersDb(){if(!confirm('Alle Bestellungen l\u00f6schen?'))return;localStorage.removeItem(ORDERS_DB_KEY);if(R('orders-db-tbody'))R('orders-db-tbody').innerHTML='';updateDbBadges();}
+function exportOrdersJSON(){const db=loadOrdersDb();if(!db.length){showToast('Keine Daten.');return;}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='vmp_bestellungen_'+_exportDateStr()+'.json';a.click();showToast('\u2705 '+db.length+' Eintr\u00e4ge exportiert');}
+function exportOrdersCSV(){_exportCSV(loadOrdersDb(),ORDERS_COLS.map((k,i)=>({key:k,label:ORDERS_LABELS[i]})),'vmp_bestellungen_'+_exportDateStr()+'.csv');}
+function handleOrdersImport(input){_importJSON(input,loadOrdersDb,saveOrdersDb,()=>{if(R('orders-db-tbody'))renderOrdersTable();updateDbBadges();});}
+
+/* ─────────────────────────────────────────────────────────────────
+   Trainingsdaten DB  (Datum | Uhrzeit | Sportart | Dauer | Kal. | Distanz | HF | Gewicht | Notizen)
+──────────────────────────────────────────────────────────────────*/
+const TRAININGDATA_DB_KEY = 'vmp_trainingdata_db';
+const TRAININGDATA_COLS   = ['datum','aktivitaet','titel','dauer','distanz_km','kalorien','hf_avg','hf_max','leistung_avg','np','tss','anstieg_m','aerober_te','notizen'];
+const TRAININGDATA_LABELS = ['Datum','Aktivitätstyp','Titel','Dauer','Distanz (km)','Kalorien','Ø Herzfrequenz','HF Max','Ø Leistung (W)','NP® (W)','TSS®','Anstieg (m)','Aerober TE','Notizen'];
+
+function loadTrainingDataDb()   { try { return JSON.parse(localStorage.getItem(TRAININGDATA_DB_KEY) || '[]'); } catch { return []; } }
+function saveTrainingDataDb(db) { localStorage.setItem(TRAININGDATA_DB_KEY, JSON.stringify(db)); updateDbBadges(); }
+
+function addTrainingDataRow() {
+  const db = loadTrainingDataDb();
+  db.push({ datum: new Date().toLocaleDateString('de-DE'), aktivitaet:'', titel:'', dauer:'', distanz_km:'', kalorien:'', hf_avg:'', hf_max:'', leistung_avg:'', np:'', tss:'', anstieg_m:'', aerober_te:'', notizen:'' });
+  saveTrainingDataDb(db);
+  const body = R('dsh-body-trainingdata');
+  if (body) { body.classList.remove('collapsed'); body.previousElementSibling.classList.remove('collapsed'); }
+  initTrainingDataSection();
+}
+
+function initTrainingDataSection() {
+  const area = R('trainingdata-db-area');
+  if (!area) return;
+  if (!R('trainingdata-db-tbody')) {
+    area.innerHTML =
+      '<input id="tddb-search" class="receipt-db-search" placeholder="\uD83D\uDD0D Suche \u2026" oninput="renderTrainingDataTable()">'+
+      '<div class="receipt-db-scroll">'+
+        '<table><thead><tr>'+TRAININGDATA_LABELS.map(l=>'<th>'+l+'</th>').join('')+'<th></th></tr></thead>'+
+        '<tbody id="trainingdata-db-tbody"></tbody></table>'+
+      '</div>'+
+      '<div class="receipt-db-btn-row">'+
+        '<button class="btn-small" onclick="exportTrainingDataCSV()">\u2B07\uFE0F CSV</button>'+
+        '<button class="btn-small" onclick="exportTrainingDataJSON()">\u2B07\uFE0F JSON</button>'+
+        '<button class="btn-small" style="border-color:#3b82f6;color:#1d4ed8" onclick="R(\'tddb-garmin-file\').click()">\ud83d\udcca Garmin CSV</button>'+
+        '<input type="file" id="tddb-garmin-file" accept=".csv" style="display:none" onchange="importGarminCsv(this)">'+
+        '<button class="btn-small" onclick="R(\'tddb-import-file\').click()">\u2B06\uFE0F JSON</button>'+
+        '<input type="file" id="tddb-import-file" accept=".json" style="display:none" onchange="handleTrainingDataImport(this)">'+
+        '<button class="btn-small" style="margin-left:auto;border-color:#fca5a5;color:#b91c1c" onclick="clearTrainingDataDb()">\uD83D\uDDD1 Leeren</button>'+
+      '</div>';
+  }
+  renderTrainingDataTable();
+}
+
+function renderTrainingDataTable() {
+  const tbody = R('trainingdata-db-tbody');
+  if (!tbody) return;
+  const db = loadTrainingDataDb();
+  const search = (R('tddb-search')?.value || '').toLowerCase();
+  const filtered = db.map((row,i) => ({row,i})).filter(({row}) =>
+    !search || TRAININGDATA_COLS.some(k => (row[k]||'').toLowerCase().includes(search)));
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="'+(TRAININGDATA_LABELS.length+1)+'" style="text-align:center;color:var(--text-muted);padding:.8rem">'+(db.length ? 'Keine Eintr\u00e4ge gefunden.' : 'Noch keine Eintr\u00e4ge \u2014 \u201e+ Zeile\u201c klicken.')+'</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(({row,i}) =>
+    '<tr>'+TRAININGDATA_COLS.map(k =>
+      '<td contenteditable="true" onblur="updateTrainingDataRow('+i+',\''+k+'\',this.textContent)">'+(row[k]||'')+'</td>'
+    ).join('')+'<td><span style="cursor:pointer;color:#c0392b" onclick="deleteTrainingDataRow('+i+')" title="L\u00f6schen">\u2715</span></td></tr>'
+  ).join('');
+}
+
+function updateTrainingDataRow(idx,field,val){const db=loadTrainingDataDb();if(db[idx]){db[idx][field]=val.trim();saveTrainingDataDb(db);}}
+function deleteTrainingDataRow(idx){const db=loadTrainingDataDb();db.splice(idx,1);saveTrainingDataDb(db);renderTrainingDataTable();}
+function clearTrainingDataDb(){if(!confirm('Alle Trainingsdaten l\u00f6schen?'))return;localStorage.removeItem(TRAININGDATA_DB_KEY);if(R('trainingdata-db-tbody'))R('trainingdata-db-tbody').innerHTML='';updateDbBadges();}
+function exportTrainingDataJSON(){const db=loadTrainingDataDb();if(!db.length){showToast('Keine Daten.');return;}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='vmp_training_'+_exportDateStr()+'.json';a.click();showToast('\u2705 '+db.length+' Eintr\u00e4ge exportiert');}
+function exportTrainingDataCSV(){_exportCSV(loadTrainingDataDb(),TRAININGDATA_COLS.map((k,i)=>({key:k,label:TRAININGDATA_LABELS[i]})),'vmp_training_'+_exportDateStr()+'.csv');}
+function handleTrainingDataImport(input){_importJSON(input,loadTrainingDataDb,saveTrainingDataDb,()=>{if(R('trainingdata-db-tbody'))renderTrainingDataTable();updateDbBadges();});}
+
+/* ── Garmin Connect CSV direct import ─────────────────────────── */
+// Garmin CSV: header row is plain, each data row is one RFC-4180 quoted field
+// Inner field values are double-quoted with "" escaping.
+// Col positions (0-based):
+//  0=Aktivitätstyp  1=Datum(ISO)  3=Titel  4=Distanz  5=Kalorien
+//  6=Zeit  7=Ø HF  8=Max HF  9=Aerober TE  14=Anstieg gesamt
+//  19=NP®  20=TSS®  22=Ø Leistung
+function _parseGarminLine(line) {
+  let s = line.trim();
+  if (s.startsWith('"') && s.endsWith('"')) s = s.slice(1, -1);
+  const fields = []; let cur = '', inQ = false;
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === '"') {
+      if (inQ && s[i + 1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (s[i] === ',' && !inQ) { fields.push(cur); cur = ''; }
+    else cur += s[i];
+  }
+  fields.push(cur);
+  return fields;
+}
+function _garminDateToDe(s) {
+  const m = (s || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : s;
+}
+function importGarminCsv(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
+    const clean = v => (!v || v === '--') ? '' : v.trim();
+    const rows = [];
+    for (const line of lines.slice(1)) {   // skip header
+      const f = _parseGarminLine(line);
+      if (f.length < 10) continue;
+      rows.push({
+        datum:        _garminDateToDe(clean(f[1])),
+        aktivitaet:   clean(f[0]),
+        titel:        clean(f[3]),
+        dauer:        clean(f[6]),
+        distanz_km:   clean(f[4]),
+        kalorien:     clean(f[5]),
+        hf_avg:       clean(f[7]),
+        hf_max:       clean(f[8]),
+        leistung_avg: f.length > 22 ? clean(f[22]) : '',
+        np:           f.length > 19 ? clean(f[19]) : '',
+        tss:          f.length > 20 ? clean(f[20]) : '',
+        anstieg_m:    f.length > 14 ? clean(f[14]) : '',
+        aerober_te:   clean(f[9]),
+        notizen:      ''
+      });
+    }
+    if (!rows.length) { showToast('\u274C Keine g\u00fcltigen Garmin-Zeilen gefunden.'); input.value = ''; return; }
+    const db = loadTrainingDataDb();
+    const merged = [...db, ...rows];
+    saveTrainingDataDb(merged);
+    const body = R('dsh-body-trainingdata');
+    if (body) { body.classList.remove('collapsed'); body.previousElementSibling.classList.remove('collapsed'); }
+    initTrainingDataSection();
+    showToast('\u2705 ' + rows.length + ' Garmin-Eintr\u00e4ge importiert, ' + merged.length + ' gesamt.');
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function deduplicateDb(db) {
+  const map = new Map();
+  db.forEach(item => {
+    const key = normalizeName(item.name);
+    if (!key) return;
+    if (!map.has(key)) { map.set(key, item); return; }
+    const dA = parseDatum(map.get(key).datum);
+    const dB = parseDatum(item.datum);
+    if (dB >= dA) map.set(key, item);
+  });
+  return [...map.values()];
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Tag input
+──────────────────────────────────────────────────────────────────*/
+function addTag(e, containerId) {
+  if (e.key !== 'Enter' && e.key !== ',' && e.key !== ';') return;
+  e.preventDefault();
+  const input = e.target;
+  const raw   = input.value;
+  // Split on semicolons to allow bulk entry
+  const parts = raw.split(/[;,]/).map(s => s.trim()).filter(Boolean);
+  if (!parts.length) return;
+  const container = document.getElementById(containerId);
+  parts.forEach(val => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.dataset.value = val;
+    tag.innerHTML = `${val} <span class="del" onclick="this.parentElement.remove()">×</span>`;
+    container.insertBefore(tag, input);
+  });
+  input.value = '';
+  scheduleAutosave();
+}
+
+function getTagValues(containerId) {
+  return [...document.querySelectorAll(`#${containerId} .tag`)].map(t => t.dataset.value);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Sport toggle
+──────────────────────────────────────────────────────────────────*/
+function toggleSport(show) {
+  const ids = ['sport_goal_field','training_days_field','training_intensity_field',
+               'long_session_field','pre_post_field','training_context_field'];
+  ids.forEach(id => document.getElementById(id).style.display = show ? '' : 'none');
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   API Key visibility toggle
+──────────────────────────────────────────────────────────────────*/
+function toggleApiKeyVisibility() {
+  const inp = R('api_key');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Helpers
+──────────────────────────────────────────────────────────────────*/
+const R = id => document.getElementById(id);
+const V = id => R(id)?.value?.trim();
+const radioVal = name => document.querySelector(`input[name="${name}"]:checked`)?.value ?? '';
+const checks = id => [...document.querySelectorAll(`#${id} input[type="checkbox"]:checked`)].map(c => c.value);
+function showToast(msg) {
+  const toast = R('copy-toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2300);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Prompt Assembly
+──────────────────────────────────────────────────────────────────*/
+function buildPromptText() {
+  const planName      = V('plan_name');
+  const peopleCount   = V('people_count') || '1';
+  const primaryGoal   = V('primary_goal');
+  const variety       = radioVal('variety');
+  const budgetMin     = V('budget_min');
+  const budgetMax     = V('budget_max');
+  const budgetHard    = V('budget_hard_cap');
+  const complexity    = radioVal('complexity');
+  const mealPrep      = radioVal('meal_prep');
+  const mealPrepDay   = V('meal_prep_day');
+  const goalOverride  = V('goal_priority_override');
+  const regionalSeasonalFlags = checks('regional_seasonal');
+
+  const calorieTarget = V('calorie_target');
+  const proteinTarget = V('protein_target');
+  const appetite      = radioVal('appetite');
+  const repeatMeals   = radioVal('repeat');
+  const allergies     = getTagValues('tags-allergies');
+  const dislikes      = getTagValues('tags-dislikes');
+  const preferred     = getTagValues('tags-preferred');
+  const macroPref     = V('macro_preference');
+
+  const doesSport     = radioVal('does_sport') === 'ja';
+  const sportGoal     = V('sport_goal');
+  const trainingDays  = checks('training_days');
+  const trainInten    = V('training_intensities');
+  const longDay       = V('long_session_day');
+  const prePost       = radioVal('pre_post');
+  const trainCtx      = V('training_context');
+
+  const breakfastTime = V('breakfast_time') || '5';
+  const lunchTime     = V('lunch_time') || '15';
+  const dinnerTime    = V('dinner_time') || '15';
+  const shoppingDay   = V('shopping_day') || 'Samstag';
+  const officeDays    = checks('office_days');
+  const externalMeals = getTagValues('tags-external');
+  const togoDays      = checks('togo_days');
+  const maxExcept     = V('max_exception_meals');
+
+  const stores        = getTagValues('tags-stores');
+  const prodConstr    = getTagValues('tags-product-constraints');
+  const localProds    = getTagValues('tags-local-products');
+
+  const pantry        = getTagValues('tags-pantry');
+  const fridge        = getTagValues('tags-fridge');
+  const freezer       = getTagValues('tags-freezer');
+  const bulk          = getTagValues('tags-bulk');
+  const supps         = getTagValues('tags-supplements');
+  const perishables   = getTagValues('tags-perishables');
+  const pantryCountBudget = R('pantry_count_budget')?.checked;
+
+  const fridgeSize    = radioVal('fridge_size');
+  const fridgeLiters  = V('fridge_liters');
+  const freezerSize   = radioVal('freezer_size');
+  const freezerLiters = V('freezer_liters');
+  const kitchen       = getTagValues('tags-kitchen');
+  const officeEquip   = checks('office_equip');
+
+  const realDetail    = V('real_data_details');
+  const receiptDb     = loadReceiptDb();
+  const trackingDb    = loadTrackingDb();
+  const productsDb    = loadProductsDb();
+  const ordersDb      = loadOrdersDb();
+  const trainingDb    = loadTrainingDataDb();
+
+  const failPts       = V('failure_points');
+  const snackPref     = V('snack_pref');
+  const dessert       = radioVal('dessert');
+  const eatingOut     = radioVal('eating_out');
+
+  const detailLevel   = radioVal('detail_level') || 'detailliert';
+  const outputOpts    = checks('output_options');
+  const extraNotes    = V('extra_notes');
+
+  // Week info
+  const weekStart     = V('week_start');
+  const weekEnd       = V('week_end');
+  const weekStartDay  = R('week_start_day')?.options[R('week_start_day')?.selectedIndex]?.text || 'Montag';
+  const weekLabel     = R('week_label')?.textContent || '';
+
+  let p = '';
+  p += SYSTEM_PROMPT + '\n\n';
+  p += `=== NUTZEREINGABE ===\n\n`;
+
+  if (planName) p += `plan_name: ${planName}\n`;
+  p += `people_count: ${peopleCount}\n`;
+  p += `current_date: ${new Date().toLocaleDateString('de-DE')}\n`;
+  if (weekStart) p += `plan_week_start: ${weekStart}\n`;
+  if (weekEnd)   p += `plan_week_end: ${weekEnd}\n`;
+  if (weekLabel) p += `plan_week_label: ${weekLabel}\n`;
+  p += `week_start_day: ${weekStartDay}\n`;
+
+  p += `\n--- A) Ziele & Optimierungslogik ---\n`;
+  if (primaryGoal)  p += `primary_goal: ${primaryGoal}\n`;
+  if (variety)      p += `desired_variety: ${variety}\n`;
+  if (complexity)   p += `cooking_complexity_preference: ${complexity}\n`;
+  if (mealPrep) {
+    p += `meal_prep_mode: ${mealPrep}\n`;
+    if (mealPrep === 'meal prep erlaubt' && mealPrepDay) p += `meal_prep_day: ${mealPrepDay}\n`;
+  }
+  if (budgetMin || budgetMax) {
+    const bMin = budgetMin ? `min: ${budgetMin} €` : '';
+    const bMax = budgetMax ? `max: ${budgetMax} €` : '';
+    p += `budget: ${[bMin, bMax].filter(Boolean).join(', ')}\n`;
+  }
+  if (budgetHard)   p += `budget_hard_cap: ${budgetHard} €\n`;
+  if (regionalSeasonalFlags.length) p += `regional_seasonal_preferences: ${regionalSeasonalFlags.join('; ')}\n`;
+  if (goalOverride) p += `goal_priority_override:\n${goalOverride.split('\n').map(l => '  ' + l).join('\n')}\n`;
+
+  p += `\n--- B) Person & Ernährung ---\n`;
+  p += `dietary_pattern: vegan\n`;
+  if (calorieTarget) p += `calorie_base_rate: ${calorieTarget} kcal/Tag (Grundumsatz/TDEE ohne Sport — Trainingstage werden addiert)\n`;
+  if (proteinTarget) p += `protein_target_override: ${proteinTarget} g/Tag\n`;
+  if (appetite)      p += `appetite_level: ${appetite}\n`;
+  if (repeatMeals)   p += `willingness_to_repeat_meals: ${repeatMeals}\n`;
+  if (allergies.length) p += `allergies: ${allergies.join(', ')}\n`;
+  if (dislikes.length)  p += `disliked_foods: ${dislikes.join(', ')}\n`;
+  if (preferred.length) p += `preferred_foods: ${preferred.join(', ')}\n`;
+  if (macroPref)        p += `macro_preference: ${macroPref}\n`;
+
+  p += `\n--- C) Sport & Training ---\n`;
+  p += `does_sport: ${doesSport ? 'ja' : 'nein'}\n`;
+  if (doesSport) {
+    if (sportGoal)           p += `sport_goal: ${sportGoal}\n`;
+    if (trainingDays.length) p += `training_days: ${trainingDays.join(', ')}\n`;
+    if (trainInten)          p += `training_intensities: ${trainInten}\n`;
+    if (longDay)             p += `long_session_day: ${longDay}\n`;
+    if (prePost)             p += `pre_post_workout_needed: ${prePost}\n`;
+    if (trainCtx)            p += `training_context: ${trainCtx}\n`;
+  }
+
+  p += `\n--- D) Zeit & Alltag ---\n`;
+  p += `breakfast_time_limit: ${breakfastTime} min\n`;
+  p += `lunch_time_limit: ${lunchTime} min\n`;
+  p += `dinner_time_limit: ${dinnerTime} min\n`;
+  p += `shopping_day: ${shoppingDay}\n`;
+  if (officeDays.length)    p += `office_days: ${officeDays.join(', ')}\n`;
+  if (externalMeals.length) p += `external_meals: ${externalMeals.join(', ')}\n`;
+  if (togoDays.length)      p += `to_go_needed_days: ${togoDays.join(', ')}\n`;
+  if (maxExcept)            p += `max_exception_meals_per_week: ${maxExcept}\n`;
+
+  p += `\n--- E) Einkauf & Verfügbarkeit ---\n`;
+  if (stores.length) p += `stores: [${stores.join(', ')}]\n`;
+  else               p += `stores: [generischer deutscher Discounter/Supermarkt]\n`;
+  if (prodConstr.length) p += `known_product_constraints: ${prodConstr.join('; ')}\n`;
+  if (localProds.length) p += `local_products_known: ${localProds.join('; ')}\n`;
+
+  p += `\n--- F) Vorräte & Pantry ---\n`;
+  if (pantry.length)      p += `pantry_items: ${pantry.join(', ')}\n`;
+  if (pantryCountBudget)  p += `pantry_costs_count_toward_budget: ja (anteilige Wochenkosten der Pantry-Artikel ins Gesamtbudget einrechnen; bitte aus den Mengenangaben schätzen)\n`;
+  if (fridge.length)      p += `fridge_items: ${fridge.join(', ')}\n`;
+  if (freezer.length)     p += `freezer_items: ${freezer.join(', ')}\n`;
+  if (bulk.length)        p += `bulk_products_owned: ${bulk.join(', ')}\n`;
+  if (supps.length)       p += `supplements_owned: ${supps.join(', ')}\n`;
+  if (perishables.length) p += `perishables_to_use_up: ${perishables.join(', ')}\n`;
+
+  p += `\n--- G) Lagerung & Infrastruktur ---\n`;
+  if (fridgeSize) {
+    const fridgeLbl = fridgeSize === 'individuell' && fridgeLiters ? `individuell (${fridgeLiters} L)` : fridgeSize + (fridgeLiters ? ` (ca. ${fridgeLiters} L)` : '');
+    p += `fridge_size: ${fridgeLbl}\n`;
+  }
+  if (freezerSize) {
+    const freezerLbl = freezerSize === 'individuell' && freezerLiters ? `individuell (${freezerLiters} L)` : freezerSize + (freezerLiters ? ` (ca. ${freezerLiters} L)` : '');
+    p += `freezer_size: ${freezerLbl}\n`;
+  }
+  if (kitchen.length)     p += `kitchen_equipment: ${kitchen.join(', ')}\n`;
+  if (officeEquip.length) p += `office_equipment: ${officeEquip.join(', ')}\n`;
+
+  if (realDetail || receiptDb.length || trackingDb.length || productsDb.length || ordersDb.length || trainingDb.length) {
+    p += `\n--- H) Reale Daten & Belege ---\n`;
+    if (realDetail) p += `hinweise:\n${realDetail.split('\n').map(l=>'  '+l).join('\n')}\n`;
+    if (receiptDb.length) {
+      p += `kassenzettel (${receiptDb.length} Einträge, NUR Preisreferenz — NICHT als vorhandene Vorräte interpretieren):\n`;
+      p += `  → Verwende diese Daten ausschließlich zur Preis- und Kostenplanung. Was tatsächlich vorhanden ist, steht in pantry_items/fridge_items/freezer_items.\n`;
+      receiptDb.forEach((r, i) => {
+        p += `  ${i+1}. ${[r.datum, r.laden, r.name, r.menge, r.preis].filter(Boolean).join(' | ')}\n`;
+      });
+    }
+    if (trackingDb.length) {
+      p += `trackingdaten (${trackingDb.length} Einträge):\n`;
+      trackingDb.forEach((r, i) => {
+        p += `  ${i+1}. ${[r.datum, r.mahlzeit, r.produkt, r.menge, r.kalorien ? r.kalorien+'kcal' : '', r.protein ? r.protein+'g Prot' : ''].filter(Boolean).join(' | ')}\n`;
+      });
+    }
+    if (productsDb.length) {
+      p += `produktdatenbank (${productsDb.length} Einträge):\n`;
+      productsDb.forEach((r, i) => {
+        p += `  ${i+1}. ${[r.name, r.kategorie, r.marke, r.groesse, r.preis ? r.preis+'€' : '', r.laden, r.naehrstoffe].filter(Boolean).join(' | ')}\n`;
+      });
+    }
+    if (ordersDb.length) {
+      p += `bestellungen (${ordersDb.length} Einträge):\n`;
+      ordersDb.forEach((r, i) => {
+        p += `  ${i+1}. ${[r.datum, r.shop, r.bestellnr, r.produkt, r.menge, r.preis ? r.preis+'€' : '', r.status].filter(Boolean).join(' | ')}\n`;
+      });
+    }
+    if (trainingDb.length) {
+      // Sort newest first, take last 30 entries (approx 4–6 weeks)
+      const tSorted = [...trainingDb].sort((a, b) => {
+        const pd = s => { const m = (s||'').match(/(\d{2})\.(\d{2})\.(\d{4})/); return m ? new Date(+m[3],+m[2]-1,+m[1]) : new Date(0); };
+        return pd(b.datum) - pd(a.datum);
+      }).slice(0, 30);
+      // Compute totals for context
+      const totalKcal = tSorted.reduce((s, r) => s + (parseFloat(r.kalorien) || 0), 0);
+      const totalMin  = tSorted.reduce((s, r) => {
+        const t = r.dauer || ''; const hm = t.match(/(\d+):(\d+)/); return s + (hm ? +hm[1]*60 + +hm[2] : 0);
+      }, 0);
+      p += `trainingsdaten_real (${tSorted.length} letzte Einheiten, Summe: ${Math.round(totalKcal)} kcal verbrannt, ${Math.round(totalMin/60*10)/10} h Gesamtdauer):\n`;
+      p += `  → Verwende diese Daten für: Kalorien-Korrekturen an Trainingstagen, Erholungsbedarf, Pre-/Post-Workout-Mahlzeiten, wöchentliche Belastungsabschätzung.\n`;
+      tSorted.forEach((r, i) => {
+        const parts = [r.datum, r.aktivitaet, r.titel, r.dauer];
+        if (r.kalorien)     parts.push(r.kalorien + ' kcal');
+        if (r.distanz_km)   parts.push(r.distanz_km + ' km');
+        if (r.hf_avg)       parts.push('HF Ø' + r.hf_avg);
+        if (r.leistung_avg) parts.push(r.leistung_avg + ' W Ø');
+        if (r.tss)          parts.push('TSS ' + r.tss);
+        if (r.aerober_te)   parts.push('TE ' + r.aerober_te);
+        p += `  ${i+1}. ${parts.filter(Boolean).join(' | ')}\n`;
+      });
+    }
+  }
+
+  p += `\n--- I) Nutzungsverhalten & Praxis ---\n`;
+  if (failPts)   p += `typical_failure_points:\n${failPts.split('\n').map(l=>'  '+l).join('\n')}\n`;
+  if (snackPref) p += `snack_preference: ${snackPref}\n`;
+  if (dessert)   p += `dessert_frequency: ${dessert}\n`;
+  if (eatingOut) p += `eating_out_frequency_last_week: ${eatingOut}\n`;
+
+  p += `\n--- J) Ausgabeoptionen ---\n`;
+  p += `output_detail_level: ${detailLevel}\n`;
+  if (outputOpts.includes('Kostentabelle'))                  p += `include_cost_table: true\n`;
+  if (outputOpts.includes('Nährstofftabelle'))               p += `include_nutrient_table: true\n`;
+  if (outputOpts.includes('Review-Abschnitt'))               p += `include_review_section: true\n`;
+  if (outputOpts.includes('NotebookLM-freundliches Format')) p += `notebooklm_friendly: true\n`;
+
+  if (extraNotes) p += `\n--- Sonstige Anmerkungen ---\n${extraNotes}\n`;
+
+  p += `\n=== ENDE NUTZEREINGABE ===\n`;
+  p += `\nBitte erstelle jetzt den vollständigen Wochenplan gemäß deinen internen Regeln und obigen Parametern.`;
+  return p;
+}
+
+function generatePrompt() {
+  const p = buildPromptText();
+  R('prompt-output').textContent = p;
+  const outCard = R('output-card');
+  outCard.style.display = 'block';
+  setTimeout(() => outCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ChatGPT API call
+──────────────────────────────────────────────────────────────────*/
+async function sendToAPI() {
+  const apiKey = R('api_key')?.value?.trim();
+  if (!apiKey) {
+    alert('Bitte zuerst den API-Key in den API-Einstellungen eintragen (🔑 Karte oben aufklappen).');
+    return;
+  }
+
+  const fullText = buildPromptText();
+  const splitIdx = fullText.indexOf('=== NUTZEREINGABE ===');
+  const userMsg  = splitIdx >= 0 ? fullText.slice(splitIdx) : fullText;
+
+  // Resolve model ID
+  const selVal = V('api_model') || '';
+  const model  = selVal === '__custom__'
+    ? (R('api_model_custom')?.value?.trim() || 'gpt-5.4')
+    : (selVal || 'gpt-5.4');
+
+  // Per-model output token limit (capped sensibly for a meal planner)
+  const cfg       = MODEL_CONFIG[model] || {};
+  const maxTokens = cfg.maxOut || MODEL_DEFAULT_MAXOUT;
+  const isReasoning = cfg.reasoning ?? /^o\d/.test(model);
+
+  const btn = R('btn-api');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Antwort wird generiert …';
+
+  const apiCard = R('api-output-card');
+  apiCard.style.display = 'none';
+
+  try {
+    // All current OpenAI text models are supported via the Responses API
+    const body = {
+      model,
+      instructions: SYSTEM_PROMPT,
+      input: userMsg,
+      max_output_tokens: maxTokens
+    };
+    // temperature is supported for non-reasoning models
+    if (!isReasoning) body.temperature = 0.7;
+
+    const res = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || `API-Fehler ${res.status}`);
+
+    // output_text is a convenience field; fall back to traversing output array
+    const text = data.output_text
+      ?? data.output?.find(o => o.type === 'message')?.content?.find(c => c.type === 'output_text')?.text
+      ?? '';
+    const usage = data.usage;
+
+    R('api-response').innerHTML = renderMarkdown(text);
+    R('api-meta').textContent =
+      `Modell: ${data.model}  |  Tokens: ${usage?.input_tokens ?? '?'} Prompt + ${usage?.output_tokens ?? '?'} Antwort = ${usage?.total_tokens ?? '?'} gesamt`;
+
+    apiCard.style.display = 'block';
+    setTimeout(() => apiCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+
+  } catch (err) {
+    R('api-response').innerHTML =
+      `<div class="api-error-box">❌ ${err.message}<br><small>Modell: <code>${model}</code> — API-Key und Modell-ID prüfen.</small></div>`;
+    R('api-meta').textContent = '';
+    apiCard.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🤖 Direkt via ChatGPT generieren';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Markdown renderer
+──────────────────────────────────────────────────────────────────*/
+function _inl(t) {
+  return t
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/__(.+?)__/g,'<strong>$1</strong>')
+    .replace(/\*([^*\n]+?)\*/g,'<em>$1</em>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>');
+}
+
+function _buildTable(rows) {
+  const pr = r => r.trim().replace(/^\||\|$/g,'').split('|').map(c => c.trim());
+  const head = pr(rows[0]);
+  const body = rows.slice(2);
+  let t = '<table><thead><tr>' + head.map(h=>`<th>${_inl(h)}</th>`).join('') + '</tr></thead><tbody>';
+  body.forEach(r => {
+    const cells = pr(r);
+    t += '<tr>' + cells.map(c=>`<td>${_inl(c)}</td>`).join('') + '</tr>';
+  });
+  return t + '</tbody></table>\n';
+}
+
+function renderMarkdown(md) {
+  const lines = md.split('\n');
+  let html = '', i = 0;
+  while (i < lines.length) {
+    const ln = lines[i];
+
+    // Fenced code block
+    if (/^```/.test(ln)) {
+      let code = ''; i++;
+      while (i < lines.length && !/^```/.test(lines[i])) { code += lines[i] + '\n'; i++; }
+      const esc = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      html += `<pre><code>${esc}</code></pre>\n`; i++; continue;
+    }
+
+    // Table (line starts with | and next line is separator)
+    if (/^\|/.test(ln) && i+1 < lines.length && /^\|[-: |]+\|/.test(lines[i+1])) {
+      let tRows = [];
+      while (i < lines.length && /^\|/.test(lines[i])) { tRows.push(lines[i]); i++; }
+      html += _buildTable(tRows); continue;
+    }
+
+    // Headings
+    if (/^### /.test(ln)) { html += `<h3>${_inl(ln.slice(4))}</h3>\n`; i++; continue; }
+    if (/^## /.test(ln))  { html += `<h2>${_inl(ln.slice(3))}</h2>\n`; i++; continue; }
+    if (/^# /.test(ln))   { html += `<h1>${_inl(ln.slice(2))}</h1>\n`; i++; continue; }
+
+    // Horizontal rule
+    if (/^-{3,}$/.test(ln.trim()) || /^={3,}$/.test(ln.trim()) || /^\*{3,}$/.test(ln.trim())) {
+      html += '<hr>\n'; i++; continue;
+    }
+
+    // Blockquote
+    if (/^> /.test(ln)) { html += `<blockquote>${_inl(ln.slice(2))}</blockquote>\n`; i++; continue; }
+
+    // Unordered list
+    if (/^[-*+] /.test(ln)) {
+      html += '<ul>';
+      while (i < lines.length && /^[-*+] /.test(lines[i])) {
+        html += `<li>${_inl(lines[i].replace(/^[-*+] /,''))}</li>`; i++;
+      }
+      html += '</ul>\n'; continue;
+    }
+
+    // Ordered list
+    if (/^\d+\. /.test(ln)) {
+      html += '<ol>';
+      while (i < lines.length && /^\d+\. /.test(lines[i])) {
+        html += `<li>${_inl(lines[i].replace(/^\d+\. /,''))}</li>`; i++;
+      }
+      html += '</ol>\n'; continue;
+    }
+
+    // Blank line
+    if (ln.trim() === '') { i++; continue; }
+
+    // Paragraph
+    let para = '';
+    while (i < lines.length && lines[i].trim() !== ''
+      && !/^[#>*\-+\d`|]/.test(lines[i])
+      && !/^-{3,}$/.test(lines[i].trim())
+      && !/^={3,}$/.test(lines[i].trim())) {
+      para += (para ? ' ' : '') + lines[i].trim(); i++;
+    }
+    if (para) html += `<p>${_inl(para)}</p>\n`;
+  }
+  return html;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Copy & Download
+──────────────────────────────────────────────────────────────────*/
+function copyPrompt() {
+  navigator.clipboard.writeText(R('prompt-output').textContent)
+    .then(() => showToast('✅ Prompt kopiert!'));
+}
+
+function downloadPrompt() {
+  const text = R('prompt-output').textContent;
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  a.download = (R('plan_name').value.trim() || 'vegan_meal_plan').replace(/\s+/g,'-') + '_prompt.txt';
+  a.click();
+}
+
+function copyApiResponse() {
+  const text = R('api-response').innerText || R('api-response').textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('✅ Antwort kopiert!'));
+}
+
+function downloadApiResponse() {
+  const text = R('api-response').innerText || R('api-response').textContent;
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  a.download = (R('plan_name').value.trim() || 'vegan_meal_plan').replace(/\s+/g,'-') + '_antwort.txt';
+  a.click();
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Form serialize / restore  (for autosave & profiles)
+──────────────────────────────────────────────────────────────────*/
+function serializeForm() {
+  const d = {};
+  INPUT_IDS.forEach(id => { const el = R(id); if (el) d[id] = el.value; });
+  RADIO_GROUPS.forEach(name => {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    d['radio_' + name] = el ? el.value : '';
+  });
+  CHECKBOX_GROUPS.forEach(grp => {
+    d['chk_' + grp] = [...document.querySelectorAll(`#${grp} input[type="checkbox"]`)]
+      .filter(c => c.checked).map(c => c.value);
+  });
+  TAG_CONTAINERS.forEach(id => { d['tag_' + id] = getTagValues(id); });
+  return d;
+}
+
+function restoreForm(d) {
+  INPUT_IDS.forEach(id => {
+    const el = R(id);
+    if (el && d[id] !== undefined) el.value = d[id];
+  });
+  // Show/hide custom model field if needed
+  const modelSel = R('api_model');
+  if (modelSel) syncModelInput(modelSel);
+  RADIO_GROUPS.forEach(name => {
+    const val = d['radio_' + name];
+    if (val) {
+      const el = document.querySelector(`input[name="${name}"][value="${CSS.escape(val)}"]`)
+              || document.querySelector(`input[name="${name}"][value="${val}"]`);
+      if (el) el.checked = true;
+    }
+  });
+  // Side-effect: show/hide sport fields
+  const sportVal = d['radio_does_sport'];
+  if (sportVal) toggleSport(sportVal === 'ja');
+
+  // Side-effect: show/hide meal prep day picker
+  const mealPrepVal = d['radio_meal_prep'];
+  if (mealPrepVal) toggleMealPrep(mealPrepVal);
+
+  // Side-effect: show/hide liter inputs
+  toggleLiters('fridge');
+  toggleLiters('freezer');
+
+  CHECKBOX_GROUPS.forEach(grp => {
+    const vals = d['chk_' + grp] || [];
+    document.querySelectorAll(`#${grp} input[type="checkbox"]`).forEach(c => {
+      c.checked = vals.includes(c.value);
+      c.closest('label')?.classList.toggle('checked', c.checked);
+    });
+  });
+  TAG_CONTAINERS.forEach(id => {
+    const vals = d['tag_' + id] || [];
+    const container = R(id);
+    if (!container) return;
+    container.querySelectorAll('.tag').forEach(t => t.remove());
+    const input = container.querySelector('.tags-input');
+    vals.forEach(val => {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.dataset.value = val;
+      tag.innerHTML = `${val} <span class="del" onclick="this.parentElement.remove()">×</span>`;
+      container.insertBefore(tag, input);
+    });
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Auto-save  (debounced, 900 ms after last change)
+──────────────────────────────────────────────────────────────────*/
+let _saveTimer = null;
+function scheduleAutosave() {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    localStorage.setItem('vmp_autosave', JSON.stringify(serializeForm()));
+    const dot = R('autosave-dot');
+    if (dot) { dot.classList.add('active'); setTimeout(() => dot.classList.remove('active'), 1800); }
+  }, 900);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Profile management
+──────────────────────────────────────────────────────────────────*/
+function _getProfiles() {
+  return JSON.parse(localStorage.getItem('vmp_profiles') || '{}');
+}
+
+function saveProfile() {
+  const name = (R('profile_name_input')?.value || '').trim();
+  if (!name) { alert('Bitte einen Profilnamen eingeben.'); return; }
+  const profiles = _getProfiles();
+  profiles[name] = serializeForm();
+  localStorage.setItem('vmp_profiles', JSON.stringify(profiles));
+  updateProfileDropdown(name);
+  showToast(`✅ Profil "${name}" gespeichert`);
+}
+
+function loadProfile() {
+  const name = V('profile_select');
+  if (!name) return;
+  const profiles = _getProfiles();
+  if (profiles[name]) { restoreForm(profiles[name]); showToast(`📂 Profil "${name}" geladen`); }
+}
+
+function deleteProfile() {
+  const name = V('profile_select');
+  if (!name) return;
+  if (!confirm(`Profil "${name}" wirklich löschen?`)) return;
+  const profiles = _getProfiles();
+  delete profiles[name];
+  localStorage.setItem('vmp_profiles', JSON.stringify(profiles));
+  updateProfileDropdown();
+  showToast(`🗑 Profil "${name}" gelöscht`);
+}
+
+function exportProfilesJSON() {
+  const profiles = _getProfiles();
+  const keys = Object.keys(profiles);
+  if (!keys.length) { showToast('Keine Profile vorhanden.'); return; }
+  const blob = new Blob([JSON.stringify(profiles, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `vmp_profile_${_exportDateStr()}.json`;
+  a.click();
+  showToast(`✅ ${keys.length} Profil(e) exportiert`);
+}
+
+function handleProfileImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (typeof imported !== 'object' || Array.isArray(imported)) throw new Error('Ungültiges Format');
+      const existing = _getProfiles();
+      const merged = { ...existing, ...imported };
+      localStorage.setItem('vmp_profiles', JSON.stringify(merged));
+      updateProfileDropdown();
+      showToast(`✅ ${Object.keys(imported).length} Profil(e) importiert`);
+    } catch(err) {
+      showToast('❌ Import fehlgeschlagen: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function updateProfileDropdown(selectName = '') {
+  const sel = R('profile_select');
+  if (!sel) return;
+  const names = Object.keys(_getProfiles());
+  sel.innerHTML = '<option value="">– Profil wählen –</option>' +
+    names.map(n => `<option value="${n}"${n === selectName ? ' selected' : ''}>${n}</option>`).join('');
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Event listeners & page init
+──────────────────────────────────────────────────────────────────*/
+document.addEventListener('change', e => {
+  if (e.target.matches('.check-group input[type="checkbox"]')) {
+    e.target.closest('label').classList.toggle('checked', e.target.checked);
+  }
+  scheduleAutosave();
+});
+
+// ── Tooltip viewport-aware positioning ───────────────────────────
+document.addEventListener('mouseover', e => {
+  const tip = e.target.closest('.info-tip');
+  if (!tip) return;
+  const rect = tip.getBoundingClientRect();
+  const tipW = Math.min(240, window.innerWidth - 16);
+  const estimatedH = 80; // generous estimate for wrapping text
+  let left = rect.left + rect.width / 2 - tipW / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tipW - 8));
+  const top = rect.top >= estimatedH + 14
+    ? rect.top - estimatedH - 10
+    : rect.bottom + 6;
+  tip.style.setProperty('--tip-top', top + 'px');
+  tip.style.setProperty('--tip-left', left + 'px');
+});
+document.addEventListener('input', () => scheduleAutosave());
+
+(function init() {
+  // Restore API key (stored separately, never inside profiles)
+  const savedKey = localStorage.getItem('vmp_api_key');
+  if (savedKey && R('api_key')) R('api_key').value = savedKey;
+  R('api_key')?.addEventListener('change', () => {
+    localStorage.setItem('vmp_api_key', R('api_key').value.trim());
+  });
+
+  // Restore last autosave
+  const autosave = localStorage.getItem('vmp_autosave');
+  if (autosave) {
+    try { restoreForm(JSON.parse(autosave)); }
+    catch(e) { console.warn('Autosave konnte nicht geladen werden.', e); }
+  }
+
+  // Re-apply dynamic UI state after restore
+  updateWeekLabel();
+  toggleMealPrep(radioVal('meal_prep'));
+  toggleLiters('fridge');
+  toggleLiters('freezer');
+
+  // Show model info for the currently selected model
+  const modelSel = R('api_model');
+  if (modelSel) syncModelInput(modelSel);
+
+  updateProfileDropdown();
+  updateDbBadges();
+})();
+</script>
+
+<!-- Service Worker Registration -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
+        .catch(err => console.warn('[PWA] Service Worker failed:', err));
+    });
+  }
+</script>
+</body>
+</html>

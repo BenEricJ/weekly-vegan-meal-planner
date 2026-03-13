@@ -1,0 +1,8 @@
+﻿{
+  "appId": "com.joachie.weeklyveganmealplanner",
+  "appName": "Vegan Meal Planner",
+  "webDir": "src",
+  "server": {
+    "androidScheme": "https"
+  }
+}
