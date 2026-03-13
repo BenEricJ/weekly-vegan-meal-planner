@@ -102,7 +102,7 @@
     .plan-card-title { font-size: 1rem; font-weight: 600; color: var(--green-dark); flex: 1; }
     .plan-card-toggle { font-size: 1.05rem; transition: transform .2s; flex-shrink: 0; }
     .plan-card-header.collapsed .plan-card-toggle { transform: rotate(-90deg); }
-    .plan-card-body { padding: 1.15rem 1.3rem; }
+    .plan-card-body { padding: 1.25rem; }
     .plan-card-body.collapsed { display: none; }
 
     /* Markdown Content */
@@ -574,9 +574,12 @@ function mdBlockToHtml(rawText) {
     if (/^## /.test(line))   { flushAll(); html += '<h3 class="plan-h2">'  + mdInline(line.replace(/^## /,''))   + '</h3>'; continue; }
     if (/^### /.test(line))  { flushAll(); html += '<h4 class="plan-h3">'  + mdInline(line.replace(/^### /,''))  + '</h4>'; continue; }
     if (/^#{4,} /.test(line)){ flushAll(); html += '<p class="plan-content"><strong>' + mdInline(line.replace(/^#{4,} /,'')) + '</strong></p>'; continue; }
-    // Sub-heading: "Template A: ..." or single-letter sub-sections "A) ..."
+    // Sub-heading: "Template A: ...", single-letter sub-sections "A) ...", or standalone **Bold** line
     if (/^Template\s+\S/i.test(trimmed) || /^[A-Z]\)\s+\S/.test(trimmed)) {
       flushAll(); html += '<h3 class="plan-h2">' + mdInline(trimmed) + '</h3>'; continue;
+    }
+    if (/^\*\*[^*\n]+\*\*$/.test(trimmed)) {
+      flushAll(); html += '<h4 class="plan-h3">' + mdInline(trimmed.replace(/^\*\*|\*\*$/g,'')) + '</h4>'; continue;
     }
     // HR: ---, ⸻ (U+2E3B), — etc. – allow single character
     if (/^[-\u2014\u2013\u2E3B\u2500\u2015]+$/.test(trimmed)) { flushAll(); html += '<hr class="plan-hr">'; continue; }
