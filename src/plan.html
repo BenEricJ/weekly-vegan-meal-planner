@@ -139,7 +139,7 @@
     .toast.show { opacity: 1; }
 
     /* Scroll-to-top */
-    .btn-top { position: fixed; bottom: 4.5rem; right: 1.5rem; background: var(--green-dark); color: white; border: none; border-radius: 50%; width: 2.6rem; height: 2.6rem; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 3px 10px rgba(45,106,79,.35); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 9998; display: flex; align-items: center; justify-content: center; }
+    .btn-top { position: fixed; bottom: 4.5rem; right: 1.5rem; background: var(--green-dark); color: white; border: none; border-radius: 50%; width: 2.6rem; height: 2.6rem; font-size: .75rem; font-weight: 700; cursor: pointer; box-shadow: 0 3px 10px rgba(45,106,79,.35); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 9998; display: flex; align-items: center; justify-content: center; }
     .btn-top.show { opacity: 1; pointer-events: auto; }
     .btn-top:hover { transform: translateY(-2px); background: var(--green); }
 
@@ -230,7 +230,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<button class="btn-top" id="btn-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Nach oben">&#9650;</button>
+<button class="btn-top" id="btn-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Nach oben">Top</button>
 
 <script>
 const R = id => document.getElementById(id);
@@ -689,8 +689,14 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Scroll-to-top visibility
   window.addEventListener('scroll', function() {
+    var scrolled = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
     var btn = R('btn-top');
-    if (btn) btn.classList.toggle('show', window.scrollY > 300);
+    if (btn) btn.classList.toggle('show', scrolled > 300);
+  });
+  document.addEventListener('scroll', function() {
+    var scrolled = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    var btn = R('btn-top');
+    if (btn) btn.classList.toggle('show', scrolled > 300);
   });
 
   // Collapse library if empty
