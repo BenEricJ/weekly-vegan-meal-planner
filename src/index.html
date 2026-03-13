@@ -1143,12 +1143,12 @@
   <!-- ─── Output ───────────────────────────────────────────────── -->
   <div class="card" id="output-card">
     <div class="card-header" onclick="toggleCard(this)">
-      <h2>&#128203; Generierter Prompt</h2>
+      <h2 style="flex:1">&#128203; Generierter Prompt</h2>
       <button class="btn-small primary" onclick="event.stopPropagation();copyPrompt()">&#128203; Kopieren</button>
       <button class="btn-small" onclick="event.stopPropagation();downloadPrompt()">&#128190; Als .txt speichern</button>
       <span class="toggle">&#9662;</span>
     </div>
-    <div class="card-body">
+    <div class="card-body single-col">
       <pre id="prompt-output"></pre>
     </div>
   </div>
@@ -1156,12 +1156,12 @@
   <!-- ─── API Output ────────────────────────────────────────────── -->
   <div class="card" id="api-output-card">
     <div class="card-header" onclick="toggleCard(this)" style="background:var(--amber-light);border-bottom:1px solid #f0c88b">
-      <h2 style="color:#7c3900">&#129302; ChatGPT Antwort</h2>
+      <h2 style="color:#7c3900;flex:1">&#129302; ChatGPT Antwort</h2>
       <button class="btn-small primary" onclick="event.stopPropagation();copyApiResponse()" style="background:var(--amber);border-color:#b45309">&#128203; Kopieren</button>
       <button class="btn-small" onclick="event.stopPropagation();downloadApiResponse()">&#128190; Als .txt speichern</button>
       <span class="toggle">&#9662;</span>
     </div>
-    <div class="card-body">
+    <div class="card-body single-col">
       <div id="api-response"></div>
       <div class="api-meta" id="api-meta"></div>
     </div>
