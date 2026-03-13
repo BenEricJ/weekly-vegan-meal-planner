@@ -581,12 +581,11 @@ function renderPlan() {
   var raw = R('md-input').value.trim();
   if (!raw) { showToast('\u26a0\ufe0f Bitte zuerst Text einf\u00fcgen.'); return; }
 
-  // Pre-process: ⸻ or lone em-dash line followed by a plain unnumbered heading → convert to # heading
-  // Excluded: "Template X:" sub-templates, "A) ..." single-letter sub-sections
+  // Pre-process: ⸻ or lone em-dash line followed by a plain unnumbered heading → convert to ## sub-heading
+  // Use ## (not #) so the heading stays inside its parent card instead of splitting into a new card
   raw = raw.replace(/[\u2E3B\u2014\u2013]+[ \t]*\n([ \t]*\n)*([A-Z\u00C4\u00D6\u00DC][^\n\t]{2,80})/g, function(m, blanks, title) {
-    var isSubHeader = /^Template\s/i.test(title) || /^[A-Z]\)\s/.test(title);
-    if (!isSubHeader && !/^[\d*\-\u2022|#]/.test(title) && title.indexOf('\t') === -1)
-      return '\n# ' + title;
+    if (!/^[\d*\-\u2022|#]/.test(title) && title.indexOf('\t') === -1)
+      return '\n## ' + title;
     return m;
   });
 
