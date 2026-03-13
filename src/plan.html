@@ -95,7 +95,7 @@
 
     /* Plan Section Cards */
     .plan-card { background: var(--white); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
-    .plan-card-header { background: var(--green-pale); padding: .75rem 1.25rem; display: flex; align-items: center; gap: .65rem; cursor: pointer; user-select: none; }
+    .plan-card-header { background: var(--green-pale); padding: .75rem 1.25rem; display: flex; align-items: center; gap: .65rem; cursor: pointer; user-select: none; border-bottom: 1px solid var(--border); }
     .plan-card-header:hover { background: #c7ead4; }
     .plan-card-number { background: var(--green-dark); color: white; font-size: .72rem; font-weight: 700; padding: .18rem .5rem; border-radius: 10px; min-width: 1.8rem; text-align: center; flex-shrink: 0; }
     .plan-card-icon { font-size: 1.1rem; flex-shrink: 0; }
@@ -622,13 +622,21 @@ function renderPlan() {
 
   if (!sections.length) { showToast('\u26a0\ufe0f Kein Markdown-Text mit Abschnitten gefunden.'); return; }
 
+  // Auto-number unnumbered sections that follow the last numbered section
+  var nextNum = 0;
+  sections.forEach(function(sec) {
+    var numM = sec.title.match(/^(\d+)\)/);
+    if (numM) { nextNum = parseInt(numM[1]) + 1; sec.displayNum = numM[1]; }
+    else if (nextNum > 0) { sec.displayNum = String(nextNum++); }
+    else { sec.displayNum = ''; }
+  });
+
   R('plan-output').innerHTML = sections.map(function(sec, idx) {
-    var numM  = sec.title.match(/^(\d+)\)/);
     var icon  = sectionIcon(sec.title);
     var bhtml = mdBlockToHtml(sec.body);
     return '<div class="plan-card">' +
       '<div class="plan-card-header" onclick="togglePlanCard(this)">' +
-        (numM ? '<span class="plan-card-number">' + numM[1] + '</span>' : '') +
+        (sec.displayNum ? '<span class="plan-card-number">' + sec.displayNum + '</span>' : '') +
         '<span class="plan-card-icon">'   + icon + '</span>' +
         '<span class="plan-card-title">'  + escHtml(sec.title.replace(/^\d+\)\s*/,'')) + '</span>' +
         '<span class="plan-card-toggle">\u25be</span>' +
