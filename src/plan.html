@@ -534,14 +534,21 @@ function mdBlockToHtml(rawText) {
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i], trimmed = line.trim();
 
-    // Tab-separated table row (ChatGPT TSV output)
-    if (line.indexOf('\t') !== -1 && !trimmed.startsWith('|')) {
-      var tCols = line.split('\t').map(function(c){ return c.trim(); }).filter(function(c,j,a){ return j < a.length; });
-      if (tCols.filter(Boolean).length >= 2) {
+    // Tab-separated table row (ChatGPT TSV) — but NOT indented bullet/numbered lines
+    var isBulletLine = /^([*\-\u2022]|\d+[.)])\s/.test(trimmed);
+    if (!isBulletLine && line.indexOf('\t') !== -1 && !trimmed.startsWith('|')) {
+      var tCols = line.split('\t').map(function(c){ return c.trim(); });
+      var nonEmpty = tCols.filter(Boolean);
+      // Exclude if any column is a lone bullet char — that's a "\t•\tText" indent pattern
+      var hasBulletCol = nonEmpty.some(function(c){ return /^[*\-\u2022]$/.test(c); });
+      // Exclude if any column starts with a bullet or number list marker
+      var hasListCol = nonEmpty.some(function(c){ return /^([*\-\u2022]|\d+[.)]).+/.test(c); });
+      if (!hasBulletCol && !hasListCol && nonEmpty.length >= 2) {
         flushList(); if (tableRows.length) flushTable();
         tabRows.push(tCols); continue;
       }
-    } else if (tabRows.length) { flushTabTable(); }
+    }
+    if (tabRows.length && (line.indexOf('\t') === -1 || isBulletLine)) { flushTabTable(); }
 
     // Pipe table row
     if (trimmed.startsWith('|')) { flushList(); if (tabRows.length) flushTabTable(); tableRows.push(trimmed); continue; }
