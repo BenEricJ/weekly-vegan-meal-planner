@@ -488,7 +488,17 @@ function mdInline(text) {
 /* Block Markdown */
 function mdBlockToHtml(rawText) {
   var lines = rawText.split('\n');
-  var html = '', tableRows = [], listItems = [], listType = null;
+  var html = '', tableRows = [], tabRows = [], listItems = [], listType = null;
+
+  function flushTabTable() {
+    if (!tabRows.length) return;
+    var thead = '<thead><tr>' + tabRows[0].map(function(h){ return '<th>' + mdInline(h) + '</th>'; }).join('') + '</tr></thead>';
+    var tbody = '<tbody>' + tabRows.slice(1).filter(function(r){ return r.some(function(c){ return c.length > 0; }); }).map(function(r){
+      return '<tr>' + r.map(function(c){ return '<td>' + mdInline(c) + '</td>'; }).join('') + '</tr>';
+    }).join('') + '</tbody>';
+    html += '<div class="plan-table-wrap"><table class="plan-table">' + thead + tbody + '</table></div>';
+    tabRows = [];
+  }
 
   function isTableSep(row) {
     var cells = row.replace(/^\|/,'').replace(/\|$/,'').split('|');
@@ -511,6 +521,7 @@ function mdBlockToHtml(rawText) {
     html += '<div class="plan-table-wrap"><table class="plan-table">' + thead + tbody + '</table></div>';
     tableRows = [];
   }
+  function flushAll() { flushTable(); flushTabTable(); flushList(); }
   function flushList() {
     if (!listItems.length) return;
     var tag = listType;
@@ -522,23 +533,35 @@ function mdBlockToHtml(rawText) {
 
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i], trimmed = line.trim();
-    if (trimmed.startsWith('|')) { flushList(); tableRows.push(trimmed); continue; }
+
+    // Tab-separated table row (ChatGPT TSV output)
+    if (line.indexOf('\t') !== -1 && !trimmed.startsWith('|')) {
+      var tCols = line.split('\t').map(function(c){ return c.trim(); }).filter(function(c,j,a){ return j < a.length; });
+      if (tCols.filter(Boolean).length >= 2) {
+        flushList(); if (tableRows.length) flushTable();
+        tabRows.push(tCols); continue;
+      }
+    } else if (tabRows.length) { flushTabTable(); }
+
+    // Pipe table row
+    if (trimmed.startsWith('|')) { flushList(); if (tabRows.length) flushTabTable(); tableRows.push(trimmed); continue; }
     else if (tableRows.length)   { flushTable(); }
-    if (/^## /.test(line))  { flushList(); html += '<h3 class="plan-h2">'  + mdInline(line.replace(/^## /,''))   + '</h3>'; continue; }
-    if (/^### /.test(line)) { flushList(); html += '<h4 class="plan-h3">'  + mdInline(line.replace(/^### /,''))  + '</h4>'; continue; }
-    if (/^#{4,} /.test(line)){ flushList(); html += '<p class="plan-content"><strong>' + mdInline(line.replace(/^#{4,} /,'')) + '</strong></p>'; continue; }
-    // HR: --- or ⸻ or — or similar dividers
-    if (/^[-—–⸻─―]{2,}$/.test(trimmed)) { flushList(); html += '<hr class="plan-hr">'; continue; }
-    // Bullet: -, *, or • (ChatGPT uses 	•	Item)
+
+    if (/^## /.test(line))   { flushAll(); html += '<h3 class="plan-h2">'  + mdInline(line.replace(/^## /,''))   + '</h3>'; continue; }
+    if (/^### /.test(line))  { flushAll(); html += '<h4 class="plan-h3">'  + mdInline(line.replace(/^### /,''))  + '</h4>'; continue; }
+    if (/^#{4,} /.test(line)){ flushAll(); html += '<p class="plan-content"><strong>' + mdInline(line.replace(/^#{4,} /,'')) + '</strong></p>'; continue; }
+    // HR: ---, ⸻ (U+2E3B), — etc. – allow single character
+    if (/^[-\u2014\u2013\u2E3B\u2500\u2015]+$/.test(trimmed)) { flushAll(); html += '<hr class="plan-hr">'; continue; }
+    // Bullet: -, *, or •
     var ulM = trimmed.match(/^[*\-\u2022]\s+(.+)/);
     if (ulM) { if (listType !== 'ul') { flushList(); listType = 'ul'; } listItems.push(ulM[1]); continue; }
     var olM = trimmed.match(/^\d+[.)]\s+(.+)/);
     if (olM) { if (listType !== 'ol') { flushList(); listType = 'ol'; } listItems.push(olM[1]); continue; }
-    if (!trimmed) { flushList(); continue; }
+    if (!trimmed) { flushAll(); continue; }
     flushList();
     html += '<p class="plan-content">' + mdInline(trimmed) + '</p>';
   }
-  flushTable(); flushList();
+  flushTable(); flushTabTable(); flushList();
   return html;
 }
 
@@ -546,6 +569,13 @@ function mdBlockToHtml(rawText) {
 function renderPlan() {
   var raw = R('md-input').value.trim();
   if (!raw) { showToast('\u26a0\ufe0f Bitte zuerst Text einf\u00fcgen.'); return; }
+
+  // Pre-process: ⸻ (U+2E3B) or lone em-dash line followed by a plain unnumbered heading → convert to # heading
+  raw = raw.replace(/[\u2E3B\u2014\u2013]+[ \t]*\n([ \t]*\n)*([A-Z\u00C4\u00D6\u00DC][^\n\t]{2,80})/g, function(m, blanks, title) {
+    if (!/^[\d*\-\u2022|#]/.test(title) && title.indexOf('\t') === -1)
+      return '\n# ' + title;
+    return m;
+  });
 
   // Split on: # Heading  OR  N) Title at line start
   var parts    = ('\n' + raw).split(/\n(?=# (?!#)|\d+\) \S)/);
