@@ -161,27 +161,6 @@
 
 <div class="container">
 
-  <!-- Plan-Bibliothek -->
-  <div class="card library-card" id="library-card">
-    <div class="card-header" onclick="toggleLibrary(this)">
-      <h2>&#128218; Plan-Bibliothek</h2>
-      <span id="library-count-badge" style="font-size:.8rem;color:var(--text-muted);margin-right:.3rem"></span>
-      <span class="toggle">&#9662;</span>
-    </div>
-    <div class="card-body" id="library-body">
-      <div id="library-list"></div>
-      <div class="library-toolbar">
-        <button class="btn-secondary" onclick="exportPlans()">&#11015;&#65039; Alle exportieren</button>
-        <label class="btn-secondary" style="cursor:pointer">
-          &#11014;&#65039; Importieren
-          <input type="file" accept=".json" style="display:none"
-                 onchange="importPlansFromFile(this)"
-                 onclick="event.stopPropagation()">
-        </label>
-      </div>
-    </div>
-  </div>
-
   <!-- Input Card -->
   <div class="card input-card">
     <div class="card-header" onclick="toggleInput(this)" style="background:var(--amber-light);border-bottom:1px solid #f0c88b">
@@ -205,6 +184,27 @@
         <button class="btn-render" onclick="renderPlan()">&#128202; Rendern</button>
         <button class="btn-secondary" onclick="clearAll()">&#128465; Leeren</button>
         <span class="input-hint" id="autosave-hint">Entwurf gespeichert</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plan-Bibliothek -->
+  <div class="card library-card" id="library-card">
+    <div class="card-header" onclick="toggleLibrary(this)">
+      <h2>&#128218; Plan-Bibliothek</h2>
+      <span id="library-count-badge" style="font-size:.8rem;color:var(--text-muted);margin-right:.3rem"></span>
+      <span class="toggle">&#9662;</span>
+    </div>
+    <div class="card-body" id="library-body">
+      <div id="library-list"></div>
+      <div class="library-toolbar">
+        <button class="btn-secondary" onclick="exportPlans()">&#11015;&#65039; Alle exportieren</button>
+        <label class="btn-secondary" style="cursor:pointer">
+          &#11014;&#65039; Importieren
+          <input type="file" accept=".json" style="display:none"
+                 onchange="importPlansFromFile(this)"
+                 onclick="event.stopPropagation()">
+        </label>
       </div>
     </div>
   </div>
