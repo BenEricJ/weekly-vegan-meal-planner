@@ -199,12 +199,9 @@
       <div id="library-list"></div>
       <div class="library-toolbar">
         <button class="btn-secondary" onclick="exportPlans()">&#11015;&#65039; Alle exportieren</button>
-        <label class="btn-secondary" style="cursor:pointer">
-          &#11014;&#65039; Importieren
-          <input type="file" accept=".json" style="display:none"
-                 onchange="importPlansFromFile(this)"
-                 onclick="event.stopPropagation()">
-        </label>
+        <button class="btn-secondary" onclick="document.getElementById('import-file-input').click()">&#11014;&#65039; Importieren</button>
+        <input type="file" id="import-file-input" accept="application/json,.json" style="display:none"
+               onchange="importPlansFromFile(this)">
       </div>
     </div>
   </div>
@@ -418,12 +415,9 @@ function importPlansFromFile(input) {
       Object.keys(imported).forEach(function(name) {
         var plan = imported[name];
         if (!plan.md) return;
-        var isNew    = !existing[name];
-        var isNewer  = !isNew && plan.savedAt > (existing[name].savedAt || '');
-        if (isNew || isNewer) {
-          existing[name] = { name: plan.name || name, md: plan.md, savedAt: plan.savedAt || new Date().toISOString() };
-          isNew ? added++ : updated++;
-        }
+        var isNew = !existing[name];
+        existing[name] = { name: plan.name || name, md: plan.md, savedAt: plan.savedAt || new Date().toISOString() };
+        isNew ? added++ : updated++;
       });
       savePlansStore(existing);
       renderLibrary();
@@ -434,7 +428,10 @@ function importPlansFromFile(input) {
         libBody.classList.remove('collapsed');
         libHeader.classList.remove('collapsed');
       }
-      showToast('\u2705 ' + added + ' neu + ' + updated + ' aktualisiert');
+      var total = added + updated;
+      showToast(total === 0
+        ? '\u26a0\ufe0f Keine g\u00fcltigen Pl\u00e4ne in der Datei gefunden'
+        : '\u2705 ' + total + ' Plan' + (total === 1 ? '' : '\u00e4ne') + ' importiert (' + added + ' neu, ' + updated + ' \u00fcberschrieben)');
     } catch(err) {
       showToast('\u274c Import fehlgeschlagen: ' + err.message);
     }
