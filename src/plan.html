@@ -125,9 +125,7 @@
     .plan-table tr:nth-child(even) td { background: #f8fdfb; }
     .plan-table td:first-child { font-weight: 600; color: var(--green-dark); white-space: nowrap; }
 
-    /* Global Toolbar */
-    .global-toolbar { background: var(--green-dark); padding: .45rem 1rem; display: flex; justify-content: flex-end; gap: .5rem; }
-    .btn-toggle-all { padding: .32rem .85rem; background: rgba(255,255,255,.13); color: white; border: 1px solid rgba(255,255,255,.28); border-radius: 7px; font-size: .8rem; font-weight: 600; cursor: pointer; transition: background .12s; white-space: nowrap; }
+    .btn-toggle-all { margin-left: auto; padding: .28rem .75rem; background: rgba(255,255,255,.13); color: white; border: 1px solid rgba(255,255,255,.28); border-radius: 7px; font-size: .8rem; font-weight: 600; cursor: pointer; transition: background .12s; white-space: nowrap; }
     .btn-toggle-all:hover { background: rgba(255,255,255,.24); }
 
     /* Empty State */
@@ -162,11 +160,8 @@
 <nav class="page-nav">
   <a href="index.html" class="page-nav-tab">&#128203; Planer</a>
   <a href="plan.html"  class="page-nav-tab active">&#128197; Wochenplan</a>
+  <button class="btn-toggle-all" id="btn-toggle-all" onclick="toggleAll()">Alle einklappen</button>
 </nav>
-
-<div class="global-toolbar">
-  <button class="btn-toggle-all" id="btn-toggle-all" onclick="toggleAll()">&#8863; Alle einklappen</button>
-</div>
 
 <div class="container">
 
@@ -271,7 +266,7 @@ function toggleAll() {
     if (anyExpanded) h.classList.add('collapsed'); else h.classList.remove('collapsed');
   });
   var btn = R('btn-toggle-all');
-  btn.textContent = anyExpanded ? '\u229e Alle aufklappen' : '\u22a0 Alle einklappen';
+  btn.textContent = anyExpanded ? 'Alle aufklappen' : 'Alle einklappen';
 }
 
 /* Multi-Plan Storage */
@@ -662,7 +657,7 @@ function renderPlan() {
 
   // Reset toggle-all button since plan cards are now expanded
   var btn = R('btn-toggle-all');
-  if (btn) btn.textContent = '\u22a0 Alle einklappen';
+  if (btn) btn.textContent = 'Alle einklappen';
 }
 
 function togglePlanCard(header) {

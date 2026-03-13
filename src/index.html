@@ -381,6 +381,8 @@
     .page-nav-tab { padding: .55rem 1.3rem; color: rgba(255,255,255,.65); text-decoration: none; font-weight: 600; font-size: .88rem; border-bottom: 3px solid transparent; transition: color .15s, border-color .15s; white-space: nowrap; }
     .page-nav-tab:hover { color: white; border-bottom-color: rgba(255,255,255,.4); }
     .page-nav-tab.active { color: white; border-bottom-color: var(--green-light); }
+    .btn-toggle-all { margin-left: auto; padding: .28rem .75rem; background: rgba(255,255,255,.13); color: white; border: 1px solid rgba(255,255,255,.28); border-radius: 7px; font-size: .8rem; font-weight: 600; cursor: pointer; transition: background .12s; white-space: nowrap; align-self: center; margin-right: .6rem; }
+    .btn-toggle-all:hover { background: rgba(255,255,255,.24); }
   </style>
 </head>
 <body>
@@ -397,6 +399,7 @@
 <nav class="page-nav">
   <a href="index.html" class="page-nav-tab active">📋 Planer</a>
   <a href="plan.html"  class="page-nav-tab">📅 Wochenplan</a>
+  <button class="btn-toggle-all" id="btn-toggle-all" onclick="toggleAll()">Alle einklappen</button>
 </nav>
 
 <div class="container" id="form-container">
@@ -1296,6 +1299,19 @@ function syncModelInput(sel) {
 /* ─────────────────────────────────────────────────────────────────
    Card toggle
 ──────────────────────────────────────────────────────────────────*/
+function toggleAll() {
+  var bodies = document.querySelectorAll('.card-body');
+  var anyExpanded = Array.prototype.some.call(bodies, function(b){ return !b.classList.contains('collapsed'); });
+  bodies.forEach(function(b){
+    if (anyExpanded) b.classList.add('collapsed'); else b.classList.remove('collapsed');
+  });
+  document.querySelectorAll('.card-header').forEach(function(h){
+    if (anyExpanded) h.classList.add('collapsed'); else h.classList.remove('collapsed');
+  });
+  var btn = document.getElementById('btn-toggle-all');
+  if (btn) btn.textContent = anyExpanded ? 'Alle aufklappen' : 'Alle einklappen';
+}
+
 function toggleCard(header) {
   const body = header.nextElementSibling;
   const isCollapsed = body.classList.toggle('collapsed');
