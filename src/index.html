@@ -342,7 +342,6 @@
 
     /* ── API Response Card ───────────────────────────────────────── */
     #api-output-card { display: none; border-color: var(--amber); }
-    #api-output-card .output-toolbar { background: var(--amber-light); border-bottom-color: #f0c88b; }
     #api-response {
       font-size: .88rem; line-height: 1.75; padding: 1.4rem 1.5rem;
       color: var(--text); max-height: 75vh; overflow-y: auto;
@@ -1143,23 +1142,29 @@
 
   <!-- ─── Output ───────────────────────────────────────────────── -->
   <div class="card" id="output-card">
-    <div class="output-toolbar">
-      <strong style="margin-right:auto;color:var(--green-dark);">📋 Generierter Prompt</strong>
-      <button class="btn-small primary" onclick="copyPrompt()">📋 Kopieren</button>
-      <button class="btn-small" onclick="downloadPrompt()">💾 Als .txt speichern</button>
+    <div class="card-header" onclick="toggleCard(this)">
+      <h2>&#128203; Generierter Prompt</h2>
+      <button class="btn-small primary" onclick="event.stopPropagation();copyPrompt()">&#128203; Kopieren</button>
+      <button class="btn-small" onclick="event.stopPropagation();downloadPrompt()">&#128190; Als .txt speichern</button>
+      <span class="toggle">&#9662;</span>
     </div>
-    <pre id="prompt-output"></pre>
+    <div class="card-body">
+      <pre id="prompt-output"></pre>
+    </div>
   </div>
 
   <!-- ─── API Output ────────────────────────────────────────────── -->
   <div class="card" id="api-output-card">
-    <div class="output-toolbar">
-      <strong style="margin-right:auto;color:#7c3900;">🤖 ChatGPT Antwort</strong>
-      <button class="btn-small primary" onclick="copyApiResponse()" style="background:var(--amber);border-color:#b45309">📋 Kopieren</button>
-      <button class="btn-small" onclick="downloadApiResponse()">💾 Als .txt speichern</button>
+    <div class="card-header" onclick="toggleCard(this)" style="background:var(--amber-light);border-bottom:1px solid #f0c88b">
+      <h2 style="color:#7c3900">&#129302; ChatGPT Antwort</h2>
+      <button class="btn-small primary" onclick="event.stopPropagation();copyApiResponse()" style="background:var(--amber);border-color:#b45309">&#128203; Kopieren</button>
+      <button class="btn-small" onclick="event.stopPropagation();downloadApiResponse()">&#128190; Als .txt speichern</button>
+      <span class="toggle">&#9662;</span>
     </div>
-    <div id="api-response"></div>
-    <div class="api-meta" id="api-meta"></div>
+    <div class="card-body">
+      <div id="api-response"></div>
+      <div class="api-meta" id="api-meta"></div>
+    </div>
   </div>
 
 </div>
@@ -2640,6 +2645,8 @@ function generatePrompt() {
   R('prompt-output').textContent = p;
   const outCard = R('output-card');
   outCard.style.display = 'block';
+  const outBody = outCard.querySelector('.card-body');
+  if (outBody) { outBody.classList.remove('collapsed'); outCard.querySelector('.card-header').classList.remove('collapsed'); }
   setTimeout(() => outCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
 }
 
@@ -2674,7 +2681,8 @@ async function sendToAPI() {
 
   const apiCard = R('api-output-card');
   apiCard.style.display = 'none';
-
+    const apiBody = apiCard.querySelector('.card-body');
+    if (apiBody) { apiBody.classList.remove('collapsed'); apiCard.querySelector('.card-header').classList.remove('collapsed'); }
   try {
     // All current OpenAI text models are supported via the Responses API
     const body = {
