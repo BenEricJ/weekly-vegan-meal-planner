@@ -383,6 +383,10 @@
     .page-nav-tab.active { color: white; border-bottom-color: var(--green-light); }
     .btn-toggle-all { margin-left: auto; padding: .28rem .75rem; background: rgba(255,255,255,.13); color: white; border: 1px solid rgba(255,255,255,.28); border-radius: 7px; font-size: .8rem; font-weight: 600; cursor: pointer; transition: background .12s; white-space: nowrap; align-self: center; margin-right: .6rem; }
     .btn-toggle-all:hover { background: rgba(255,255,255,.24); }
+    /* Scroll-to-top */
+    .btn-top { position: fixed; bottom: 4.5rem; right: 1.5rem; background: var(--green-dark); color: white; border: none; border-radius: 50%; width: 2.6rem; height: 2.6rem; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 3px 10px rgba(45,106,79,.35); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 9998; display: flex; align-items: center; justify-content: center; }
+    .btn-top.show { opacity: 1; pointer-events: auto; }
+    .btn-top:hover { transform: translateY(-2px); background: var(--green); }
   </style>
 </head>
 <body>
@@ -1171,6 +1175,7 @@
 </div>
 
 <div class="copy-toast" id="copy-toast">✅ Gespeichert!</div>
+<button class="btn-top" id="btn-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Nach oben">&#9650;</button>
 
 <!-- Analysis Prompt Modal -->
 <div class="analysis-prompt-overlay" id="analysis-prompt-overlay" onclick="if(event.target===this)closeAnalysisPrompt()">
@@ -1305,6 +1310,11 @@ function syncModelInput(sel) {
 /* ─────────────────────────────────────────────────────────────────
    Card toggle
 ──────────────────────────────────────────────────────────────────*/
+window.addEventListener('scroll', function() {
+  var btn = document.getElementById('btn-top');
+  if (btn) btn.classList.toggle('show', window.scrollY > 300);
+});
+
 function toggleAll() {
   var bodies = document.querySelectorAll('.card-body');
   var anyExpanded = Array.prototype.some.call(bodies, function(b){ return !b.classList.contains('collapsed'); });

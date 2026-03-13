@@ -138,6 +138,11 @@
     .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--green-dark); color: white; padding: .6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: .9rem; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 9999; }
     .toast.show { opacity: 1; }
 
+    /* Scroll-to-top */
+    .btn-top { position: fixed; bottom: 4.5rem; right: 1.5rem; background: var(--green-dark); color: white; border: none; border-radius: 50%; width: 2.6rem; height: 2.6rem; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 3px 10px rgba(45,106,79,.35); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 9998; display: flex; align-items: center; justify-content: center; }
+    .btn-top.show { opacity: 1; pointer-events: auto; }
+    .btn-top:hover { transform: translateY(-2px); background: var(--green); }
+
     @media (max-width: 600px) {
       header { padding: 1rem 1rem; }
       header h1 { font-size: 1.25rem; }
@@ -225,6 +230,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<button class="btn-top" id="btn-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Nach oben">&#9650;</button>
 
 <script>
 const R = id => document.getElementById(id);
@@ -680,6 +686,12 @@ function togglePlanCard(header) {
 /* Init */
 window.addEventListener('DOMContentLoaded', function() {
   renderLibrary();
+
+  // Scroll-to-top visibility
+  window.addEventListener('scroll', function() {
+    var btn = R('btn-top');
+    if (btn) btn.classList.toggle('show', window.scrollY > 300);
+  });
 
   // Collapse library if empty
   var plans     = loadPlans();
