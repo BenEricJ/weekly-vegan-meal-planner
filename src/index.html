@@ -499,7 +499,7 @@
       <div class="field">
         <label>Planwoche</label>
         <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
-          <input type="date" id="week_start" style="flex:1; min-width:130px" onchange="updateWeekLabel()" />
+          <input type="date" id="week_start" style="flex:1; min-width:130px" onchange="onWeekStartChange()" />
           <span style="font-size:.82rem;color:var(--text-muted)">bis</span>
           <input type="date" id="week_end" style="flex:1; min-width:130px" onchange="updateWeekLabel()" />
           <button class="btn-small" onclick="setCurrentWeek()">📅 Aktuelle Woche</button>
@@ -1360,6 +1360,19 @@ function setCurrentWeek() {
   weekEnd.setDate(weekStart.getDate() + 6);
   R('week_start').value = isoDate(weekStart);
   R('week_end').value   = isoDate(weekEnd);
+  updateWeekLabel();
+}
+
+function onWeekStartChange() {
+  const startVal = R('week_start').value;
+  if (startVal) {
+    const endDate = new Date(startVal + 'T00:00:00');
+    endDate.setDate(endDate.getDate() + 6);
+    const y = endDate.getFullYear();
+    const m = String(endDate.getMonth() + 1).padStart(2, '0');
+    const d = String(endDate.getDate()).padStart(2, '0');
+    R('week_end').value = `${y}-${m}-${d}`;
+  }
   updateWeekLabel();
 }
 
