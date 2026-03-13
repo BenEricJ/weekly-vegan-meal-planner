@@ -372,7 +372,7 @@ function renderLibrary() {
     var dt = new Date(p.savedAt).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
     var icon = /KW/i.test(p.name) ? '\ud83d\udcc5' : /woche/i.test(p.name) ? '\ud83d\udcc5' : '\ud83d\udcc4';
     var safeName = escHtml(p.name);
-    var jsName   = JSON.stringify(p.name);
+    var jsName   = JSON.stringify(p.name).replace(/"/g, '&quot;');
     return '<div class="plan-list-item">' +
       '<span class="pli-icon">' + icon + '</span>' +
       '<div class="pli-info">' +
