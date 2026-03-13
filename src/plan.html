@@ -95,11 +95,11 @@
 
     /* Plan Section Cards */
     .plan-card { background: var(--white); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
-    .plan-card-header { background: var(--green-pale); padding: .7rem 1.2rem; display: flex; align-items: center; gap: .65rem; cursor: pointer; user-select: none; }
+    .plan-card-header { background: var(--green-pale); padding: .75rem 1.25rem; display: flex; align-items: center; gap: .65rem; cursor: pointer; user-select: none; }
     .plan-card-header:hover { background: #c7ead4; }
     .plan-card-number { background: var(--green-dark); color: white; font-size: .72rem; font-weight: 700; padding: .18rem .5rem; border-radius: 10px; min-width: 1.8rem; text-align: center; flex-shrink: 0; }
     .plan-card-icon { font-size: 1.1rem; flex-shrink: 0; }
-    .plan-card-title { font-size: .97rem; font-weight: 700; color: var(--green-dark); flex: 1; }
+    .plan-card-title { font-size: 1rem; font-weight: 600; color: var(--green-dark); flex: 1; }
     .plan-card-toggle { font-size: 1.05rem; transition: transform .2s; flex-shrink: 0; }
     .plan-card-header.collapsed .plan-card-toggle { transform: rotate(-90deg); }
     .plan-card-body { padding: 1.15rem 1.3rem; }
@@ -628,7 +628,7 @@ function renderPlan() {
     var bhtml = mdBlockToHtml(sec.body);
     return '<div class="plan-card">' +
       '<div class="plan-card-header" onclick="togglePlanCard(this)">' +
-        '<span class="plan-card-number">' + (numM ? numM[1] : '') + '</span>' +
+        (numM ? '<span class="plan-card-number">' + numM[1] + '</span>' : '') +
         '<span class="plan-card-icon">'   + icon + '</span>' +
         '<span class="plan-card-title">'  + escHtml(sec.title.replace(/^\d+\)\s*/,'')) + '</span>' +
         '<span class="plan-card-toggle">\u25be</span>' +
