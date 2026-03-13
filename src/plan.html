@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌱 Weeknary – Wochenplan</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2d6a4f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Weeknary" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green-dark:  #2d6a4f;
+      --green:       #40916c;
+      --green-light: #74c69d;
+      --green-pale:  #d8f3dc;
+      --green-bg:    #f0faf4;
+      --amber:       #f4a261;
+      --amber-light: #fde8d4;
+      --text:        #1b4332;
+      --text-muted:  #52796f;
+      --border:      #b7d8c5;
+      --white:       #ffffff;
+      --shadow:      0 2px 10px rgba(45,106,79,.10);
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--green-bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: white;
+      padding: 1.2rem 2rem;
+      display: flex; align-items: center; gap: 1rem;
+      box-shadow: 0 3px 12px rgba(0,0,0,.15);
+    }
+    header .logo { width: 2.8rem; height: 2.8rem; border-radius: 8px; object-fit: cover; }
+    header h1  { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+    header p   { font-size: .85rem; opacity: .85; margin-top: .2rem; }
+
+    /* ── Page Nav Tabs ────────────────────────────────────────── */
+    .page-nav {
+      background: var(--green-dark);
+      display: flex;
+      border-bottom: 2px solid rgba(255,255,255,.15);
+    }
+    .page-nav-tab {
+      padding: .55rem 1.3rem;
+      color: rgba(255,255,255,.65);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: .88rem;
+      border-bottom: 3px solid transparent;
+      transition: color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .page-nav-tab:hover { color: white; border-bottom-color: rgba(255,255,255,.4); }
+    .page-nav-tab.active { color: white; border-bottom-color: var(--green-light); }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .container {
+      max-width: 980px;
+      margin: 1.5rem auto;
+      padding: 0 1rem 3rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+    }
+
+    /* ── Cards ────────────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-header {
+      background: var(--green-pale);
+      padding: .75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      gap: .5rem;
+    }
+    .card-header:hover { background: #c7ead4; }
+    .card-header h2 { font-size: 1rem; font-weight: 600; color: var(--green-dark); flex: 1; }
+    .card-header .toggle { font-size: 1.1rem; transition: transform .2s; flex-shrink: 0; }
+    .card-header.collapsed .toggle { transform: rotate(-90deg); }
+    .card-body { padding: 1.25rem; }
+    .card-body.collapsed { display: none; }
+
+    /* ── Input Area ───────────────────────────────────────────── */
+    .input-card .card-header { background: var(--amber-light); border-color: var(--amber); }
+    .input-card .card-header:hover { background: #f9d4b0; }
+    .input-card .card-header h2 { color: #7c3900; }
+    .input-card { border-color: var(--amber); }
+    #md-input {
+      width: 100%;
+      min-height: 180px;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      padding: .65rem .85rem;
+      font-size: .85rem;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      color: var(--text);
+      background: #fafffe;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    #md-input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(64,145,108,.18); }
+    .input-actions { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .75rem; align-items: center; }
+    .btn-render {
+      padding: .55rem 1.4rem;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: white; border: none; border-radius: 8px;
+      font-size: .95rem; font-weight: 700; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(45,106,79,.25);
+      transition: transform .1s, box-shadow .1s;
+    }
+    .btn-render:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(45,106,79,.32); }
+    .btn-render:active { transform: none; }
+    .btn-secondary {
+      padding: .5rem 1.1rem;
+      background: white; color: var(--green-dark);
+      border: 1.5px solid var(--green);
+      border-radius: 8px; font-size: .88rem; font-weight: 600;
+      cursor: pointer; transition: background .12s;
+    }
+    .btn-secondary:hover { background: var(--green-pale); }
+    .input-hint { font-size: .77rem; color: var(--text-muted); margin-left: auto; }
+    .char-count { font-size: .75rem; color: var(--text-muted); margin-top: .35rem; }
+
+    /* ── Plan Section Cards ───────────────────────────────────── */
+    .plan-card { background: var(--white); border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
+    .plan-card-header {
+      background: var(--green-pale);
+      padding: .7rem 1.2rem;
+      display: flex; align-items: center; gap: .65rem;
+      cursor: pointer; user-select: none;
+    }
+    .plan-card-header:hover { background: #c7ead4; }
+    .plan-card-number {
+      background: var(--green-dark); color: white;
+      font-size: .72rem; font-weight: 700;
+      padding: .18rem .5rem; border-radius: 10px;
+      min-width: 1.8rem; text-align: center; flex-shrink: 0;
+    }
+    .plan-card-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .plan-card-title { font-size: .97rem; font-weight: 700; color: var(--green-dark); flex: 1; }
+    .plan-card-toggle { font-size: 1.05rem; transition: transform .2s; flex-shrink: 0; }
+    .plan-card-header.collapsed .plan-card-toggle { transform: rotate(-90deg); }
+    .plan-card-body { padding: 1.15rem 1.3rem; }
+    .plan-card-body.collapsed { display: none; }
+
+    /* ── Rendered Markdown Content ────────────────────────────── */
+    .plan-content { font-size: .9rem; line-height: 1.75; color: var(--text); }
+    .plan-content p { margin: .4rem 0; }
+    .plan-content strong { color: var(--green-dark); font-weight: 700; }
+    .plan-content em { font-style: italic; color: var(--text-muted); }
+    .plan-content code { background: var(--green-pale); padding: .1rem .3rem; border-radius: 3px; font-family: monospace; font-size: .82rem; }
+    .plan-h2 {
+      font-size: .97rem; font-weight: 700; color: var(--green-dark);
+      margin: 1.1rem 0 .45rem;
+      padding-left: .7rem;
+      border-left: 3px solid var(--green-light);
+    }
+    .plan-h3 {
+      font-size: .88rem; font-weight: 700; color: var(--green);
+      margin: .8rem 0 .3rem;
+    }
+    .plan-hr { border: none; border-top: 1px dashed var(--border); margin: .9rem 0; }
+    .plan-list { padding-left: 1.4rem; margin: .35rem 0 .55rem; }
+    .plan-list li { margin: .2rem 0; }
+
+    /* ── Plan Tables ──────────────────────────────────────────── */
+    .plan-table-wrap { overflow-x: auto; margin: .65rem 0 .8rem; border-radius: 8px; border: 1px solid var(--border); }
+    .plan-table { border-collapse: collapse; width: 100%; font-size: .82rem; min-width: 400px; }
+    .plan-table th {
+      background: var(--green-pale); color: var(--green-dark);
+      font-weight: 700; padding: .4rem .7rem;
+      border: 1px solid var(--border); text-align: left;
+      white-space: nowrap;
+    }
+    .plan-table td {
+      padding: .38rem .7rem; border: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .plan-table tr:nth-child(even) td { background: #f8fdfb; }
+    .plan-table td:first-child { font-weight: 600; color: var(--green-dark); white-space: nowrap; }
+
+    /* ── Cost highlight ───────────────────────────────────────── */
+    .plan-cost-badge {
+      display: inline-block;
+      background: var(--amber-light); color: #7c3900;
+      border: 1px solid var(--amber);
+      border-radius: 6px; padding: .2rem .6rem;
+      font-size: .82rem; font-weight: 700;
+    }
+
+    /* ── Empty State ──────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: .75rem; }
+    .empty-state p { font-size: .95rem; line-height: 1.6; }
+    .empty-state p strong { color: var(--green-dark); }
+
+    /* ── Toast ────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--green-dark); color: white;
+      padding: .6rem 1.2rem; border-radius: 8px;
+      font-weight: 600; font-size: .9rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s; z-index: 9999;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      header { padding: 1rem 1rem; }
+      header h1 { font-size: 1.25rem; }
+      .plan-card-body { padding: .85rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <img class="logo" src="icons/icon-192.png" alt="Weeknary Logo" />
+  <div>
+    <h1>Weeknary</h1>
+    <p>ChatGPT-Output einfügen &rarr; strukturiert anzeigen lassen</p>
+  </div>
+</header>
+
+<!-- ── Navigation ────────────────────────────────────────────── -->
+<nav class="page-nav">
+  <a href="index.html" class="page-nav-tab">📋 Planer</a>
+  <a href="plan.html"  class="page-nav-tab active">📅 Wochenplan</a>
+</nav>
+
+<div class="container">
+
+  <!-- ── Input Card ──────────────────────────────────────────── -->
+  <div class="card input-card">
+    <div class="card-header" onclick="toggleInput(this)" style="background:var(--amber-light);border-bottom:1px solid #f0c88b">
+      <h2 style="color:#7c3900">📥 ChatGPT-Ausgabe einfügen</h2>
+      <span class="toggle">▾</span>
+    </div>
+    <div class="card-body" id="input-body">
+      <textarea id="md-input"
+        placeholder="Hier den ChatGPT-Ausgabe-Text (Markdown) einfügen und auf ‚Rendern' klicken …"
+        oninput="scheduleAutosave()"
+      ></textarea>
+      <div class="char-count" id="char-count">0 Zeichen</div>
+      <div class="input-actions">
+        <button class="btn-render" onclick="renderPlan()">📊 Rendern</button>
+        <button class="btn-secondary" onclick="clearAll()">🗑 Leeren</button>
+        <span class="input-hint" id="autosave-hint">Automatisch gespeichert</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Plan Output ─────────────────────────────────────────── -->
+  <div id="plan-output">
+    <div class="card">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>Nach dem Einfügen des <strong>ChatGPT-Outputs</strong> oben<br>
+        und einem Klick auf <strong>„Rendern"</strong> erscheinen<br>
+        die Abschnitte hier als strukturierte Karten.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Helpers ─────────────────────────────────────────────────── */
+const R = id => document.getElementById(id);
+
+function showToast(msg, ms = 2200) {
+  const t = R('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function toggleCard(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('collapsed');
+  header.classList.toggle('collapsed');
+}
+
+function toggleInput(header) {
+  const body = R('input-body');
+  body.classList.toggle('collapsed');
+  header.classList.toggle('collapsed');
+}
+
+/* ── Autosave ────────────────────────────────────────────────── */
+const LS_KEY = 'weeknary_plan_md';
+let _saveTimer = null;
+
+function scheduleAutosave() {
+  updateCharCount();
+  clearTimeout(_saveTimer);
+  R('autosave-hint').textContent = 'Speichern …';
+  _saveTimer = setTimeout(() => {
+    localStorage.setItem(LS_KEY, R('md-input').value);
+    R('autosave-hint').textContent = '✅ Gespeichert';
+  }, 800);
+}
+
+function updateCharCount() {
+  const n = R('md-input').value.length;
+  R('char-count').textContent = n.toLocaleString('de-DE') + ' Zeichen';
+}
+
+function clearAll() {
+  if (R('md-input').value && !confirm('Eingabe und Anzeige leeren?')) return;
+  R('md-input').value = '';
+  localStorage.removeItem(LS_KEY);
+  R('plan-output').innerHTML = `<div class="card"><div class="empty-state">
+    <div class="empty-icon">📋</div>
+    <p>Nach dem Einfügen des <strong>ChatGPT-Outputs</strong> oben<br>
+    und einem Klick auf <strong>„Rendern"</strong> erscheinen<br>
+    die Abschnitte hier als strukturierte Karten.</p>
+  </div></div>`;
+  updateCharCount();
+  showToast('🗑 Geleert');
+}
+
+/* ── Section icon mapping ────────────────────────────────────── */
+function sectionIcon(title) {
+  const t = title.toLowerCase();
+  if (/annahme/.test(t))                  return '🎯';
+  if (/wochenziel|woche.*ziel/.test(t))   return '📊';
+  if (/men.{1,3}plan/.test(t))            return '🍽️';
+  if (/koch|reste/.test(t))               return '👨‍🍳';
+  if (/fr.{1,4}hst/.test(t))             return '🌅';
+  if (/schnell|baukasten/.test(t))        return '⚡';
+  if (/einkauf/.test(t))                  return '🛒';
+  if (/kosten/.test(t))                   return '💰';
+  if (/n.{1,4}hrstoff/.test(t))          return '🥗';
+  if (/supplement|praxis/.test(t))        return '💊';
+  if (/review|regel/.test(t))             return '📋';
+  if (/gericht/.test(t))                  return '📝';
+  if (/kritik|kontra/.test(t))            return '🔍';
+  return '📌';
+}
+
+/* ── Inline Markdown renderer ────────────────────────────────── */
+function mdInline(text) {
+  // Escape HTML
+  text = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  // Bold **text**
+  text = text.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>');
+  // Italic *text* (not already bold markers)
+  text = text.replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+  // Inline code `text`
+  text = text.replace(/`([^`\n]+?)`/g, '<code>$1</code>');
+  return text;
+}
+
+/* ── Block Markdown renderer ─────────────────────────────────── */
+function mdBlockToHtml(rawText) {
+  const lines = rawText.split('\n');
+  let html = '';
+  let tableRows = [];
+  let listItems = [];
+  let listType  = null; // 'ul' | 'ol'
+
+  function isTableSep(row) {
+    const cells = row.replace(/^\|/, '').replace(/\|$/, '').split('|');
+    return cells.length > 0 && cells.every(c => /^\s*[-:]{1,}\s*$/.test(c));
+  }
+
+  function parseTableRow(row) {
+    return row.replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+  }
+
+  function flushTable() {
+    if (!tableRows.length) return;
+    // find separator index
+    const sepIdx = tableRows.findIndex(r => isTableSep(r));
+    const headerRows = sepIdx > 0 ? tableRows.slice(0, sepIdx)     : [tableRows[0]];
+    const bodyRows   = sepIdx >= 0 ? tableRows.slice(sepIdx + 1) : tableRows.slice(1);
+
+    const thead = '<thead>' + headerRows.map(r =>
+      '<tr>' + parseTableRow(r).map(h => `<th>${mdInline(h)}</th>`).join('') + '</tr>'
+    ).join('') + '</thead>';
+
+    const tbody = '<tbody>' + bodyRows.filter(r => r.trim()).map(r =>
+      '<tr>' + parseTableRow(r).map(c => `<td>${mdInline(c)}</td>`).join('') + '</tr>'
+    ).join('') + '</tbody>';
+
+    html += `<div class="plan-table-wrap"><table class="plan-table">${thead}${tbody}</table></div>`;
+    tableRows = [];
+  }
+
+  function flushList() {
+    if (!listItems.length) return;
+    const tag = listType;
+    html += `<${tag} class="plan-list">` +
+      listItems.map(i => `<li class="plan-content">${mdInline(i)}</li>`).join('') +
+      `</${tag}>`;
+    listItems = [];
+    listType  = null;
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // ── Table row
+    if (trimmed.startsWith('|')) {
+      flushList();
+      tableRows.push(trimmed);
+      continue;
+    } else if (tableRows.length) {
+      flushTable();
+    }
+
+    // ── h3 (## heading)
+    if (/^## /.test(line)) {
+      flushList();
+      html += `<h3 class="plan-h2">${mdInline(line.replace(/^## /, ''))}</h3>`;
+      continue;
+    }
+
+    // ── h4 (### heading)
+    if (/^### /.test(line)) {
+      flushList();
+      html += `<h4 class="plan-h3">${mdInline(line.replace(/^### /, ''))}</h4>`;
+      continue;
+    }
+
+    // ── Higher headings (####) → bold paragraph
+    if (/^#{4,} /.test(line)) {
+      flushList();
+      html += `<p class="plan-content"><strong>${mdInline(line.replace(/^#{4,} /, ''))}</strong></p>`;
+      continue;
+    }
+
+    // ── HR
+    if (/^---+$/.test(trimmed)) {
+      flushList();
+      html += '<hr class="plan-hr">';
+      continue;
+    }
+
+    // ── Unordered list (  * item  or  - item  with optional indent)
+    const ulMatch = trimmed.match(/^[*\-] (.+)/);
+    if (ulMatch) {
+      if (listType !== 'ul') { flushList(); listType = 'ul'; }
+      listItems.push(ulMatch[1]);
+      continue;
+    }
+
+    // ── Ordered list (1. item)
+    const olMatch = trimmed.match(/^\d+\. (.+)/);
+    if (olMatch) {
+      if (listType !== 'ol') { flushList(); listType = 'ol'; }
+      listItems.push(olMatch[1]);
+      continue;
+    }
+
+    // ── Empty line
+    if (!trimmed) {
+      flushList();
+      continue;
+    }
+
+    // ── Regular paragraph
+    flushList();
+    html += `<p class="plan-content">${mdInline(trimmed)}</p>`;
+  }
+
+  flushTable();
+  flushList();
+  return html;
+}
+
+/* ── Main Render Function ────────────────────────────────────── */
+function renderPlan() {
+  const raw = R('md-input').value.trim();
+  if (!raw) { showToast('⚠️ Bitte zuerst Text einfügen.'); return; }
+
+  // Split at top-level # headings
+  // Prepend newline so split works even if first line is a heading
+  const parts = ('\n' + raw).split(/\n(?=# (?!#))/);
+  const sections = [];
+
+  for (const part of parts) {
+    const trimPart = part.trimStart();
+    if (!trimPart) continue;
+    const nl = trimPart.indexOf('\n');
+    if (nl === -1) {
+      // heading only, no body
+      sections.push({ title: trimPart.replace(/^# /, '').trim(), body: '' });
+    } else {
+      sections.push({
+        title: trimPart.slice(0, nl).replace(/^# /, '').trim(),
+        body:  trimPart.slice(nl + 1)
+      });
+    }
+  }
+
+  if (!sections.length) {
+    showToast('⚠️ Kein Markdown mit # Abschnitten gefunden.');
+    return;
+  }
+
+  // Render each section as a card
+  const cards = sections.map((sec, idx) => {
+    const numMatch = sec.title.match(/^(\d+)\)/);
+    const numLabel = numMatch ? numMatch[1] : '–';
+    const icon     = sectionIcon(sec.title);
+    const bodyHtml = mdBlockToHtml(sec.body);
+    const sectionId = `plan-sec-${idx}`;
+
+    return `
+      <div class="plan-card">
+        <div class="plan-card-header" onclick="togglePlanCard(this)">
+          <span class="plan-card-number">${numLabel}</span>
+          <span class="plan-card-icon">${icon}</span>
+          <span class="plan-card-title">${escHtml(sec.title.replace(/^\d+\)\s*/, ''))}</span>
+          <span class="plan-card-toggle">▾</span>
+        </div>
+        <div class="plan-card-body" id="${sectionId}">
+          ${bodyHtml || '<p class="plan-content" style="color:var(--text-muted)"><em>Kein Inhalt.</em></p>'}
+        </div>
+      </div>`;
+  }).join('');
+
+  R('plan-output').innerHTML = cards;
+  showToast(`✅ ${sections.length} Abschnitte gerendert`);
+
+  // Collapse input card to give more space
+  const inputBody = R('input-body');
+  const inputHeader = inputBody.previousElementSibling;
+  if (!inputBody.classList.contains('collapsed')) {
+    inputBody.classList.add('collapsed');
+    inputHeader.classList.add('collapsed');
+  }
+}
+
+function togglePlanCard(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('collapsed');
+  header.classList.toggle('collapsed');
+}
+
+function escHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/* ── Init ────────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) {
+    R('md-input').value = saved;
+    updateCharCount();
+    // Auto-render if there's saved content
+    renderPlan();
+  } else {
+    updateCharCount();
+  }
+});
+</script>
+</body>
+</html>

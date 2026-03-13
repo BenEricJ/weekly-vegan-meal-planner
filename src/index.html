@@ -375,6 +375,12 @@
     .dsh-header.collapsed .dsh-icon { transform: rotate(-90deg); }
     .dsh-body { padding: .75rem; }
     .dsh-body.collapsed { display: none; }
+
+    /* ── Page Nav Tabs ───────────────────────────────────────────── */
+    .page-nav { background: var(--green-dark); display: flex; border-bottom: 2px solid rgba(255,255,255,.15); }
+    .page-nav-tab { padding: .55rem 1.3rem; color: rgba(255,255,255,.65); text-decoration: none; font-weight: 600; font-size: .88rem; border-bottom: 3px solid transparent; transition: color .15s, border-color .15s; white-space: nowrap; }
+    .page-nav-tab:hover { color: white; border-bottom-color: rgba(255,255,255,.4); }
+    .page-nav-tab.active { color: white; border-bottom-color: var(--green-light); }
   </style>
 </head>
 <body>
@@ -386,6 +392,12 @@
     <p>Felder ausfüllen &rarr; Prompt generieren <em>oder</em> direkt via ChatGPT-API antworten lassen. Einstellungen werden automatisch gespeichert.</p>
   </div>
 </header>
+
+<!-- ── Navigation ──────────────────────────────────────────────── -->
+<nav class="page-nav">
+  <a href="index.html" class="page-nav-tab active">📋 Planer</a>
+  <a href="plan.html"  class="page-nav-tab">📅 Wochenplan</a>
+</nav>
 
 <div class="container" id="form-container">
 
