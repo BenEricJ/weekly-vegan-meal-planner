@@ -45,7 +45,7 @@
       display: flex; align-items: center; gap: 1rem;
       box-shadow: 0 3px 12px rgba(0,0,0,.15);
     }
-    header .logo { font-size: 2.2rem; }
+    header .logo { width: 2.8rem; height: 2.8rem; border-radius: 8px; object-fit: cover; }
     header h1  { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
     header p   { font-size: .85rem; opacity: .85; margin-top: .2rem; }
 
@@ -380,7 +380,7 @@
 <body>
 
 <header>
-  <div class="logo">🌱</div>
+  <img class="logo" src="icons/icon-192.png" alt="Weeknary Logo" />
   <div>
     <h1>Weeknary</h1>
     <p>Felder ausfüllen &rarr; Prompt generieren <em>oder</em> direkt via ChatGPT-API antworten lassen. Einstellungen werden automatisch gespeichert.</p>
