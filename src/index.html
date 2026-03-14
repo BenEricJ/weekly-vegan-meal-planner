@@ -1259,19 +1259,24 @@ MARKDOWN-FORMAT (strikt, wird maschinell geparst):
 - Trennlinien zwischen Unterabschnitten: KEIN "⸻" oder "—". Stattdessen eine Leerzeile + nächste ## Überschrift
 - Kein Abschnitt darf mit einer anderen Struktur beginnen als "# N)"
 
-PFLICHTAUSGABE (diese 12 Abschnitte immer, exakt in dieser Reihenfolge und Nummerierung):
-# 1) Annahmen & Wochenkontext
-# 2) Wochenziele Tabelle  →  Spalten: Tag | Belastung | Kalorien-Zielkorridor | Protein-Zielkorridor | Fokus
-# 3) Menüplan Tabelle  →  Spalten: Tag | Frühstück | Mittag | Abend | Zeit | Kosten | Notizen
-# 4) Koch- und Restelogik  →  Unterabschnitte je Batch mit ## Batch N: Name
-# 5) Frühstücks-Templates  →  je Variante ein ## Template X: Name-Unterabschnitt mit ### Nährwerte, ### Kosten, ### Einsatz
-# 6) Schnellgerichte-Baukasten  →  je Gericht ein ## N. Name-Unterabschnitt mit Zeit/Mengen/Schritten/Kosten/Protein/Verwendung als Listeneinträge
-# 7) Einkaufsliste  →  je Laden ein ## Ladenname-Unterabschnitt, darunter ### Kaufen und ### Vorhanden als Listeneinträge
-# 8) Kostenschätzung  →  Pipe-Tabelle Produkt | Menge | Referenz | Wochenkosten, danach ## Budgetbewertung
-# 9) Nährstoff-Check Tabelle  →  Pipe-Tabelle Nährstoff | Hauptquellen | Einschätzung + Korrekturen
-# 10) Supplement- und Praxis-Hinweise  →  Unterabschnitte ## Supplemente, ## Pre-/Post-Workout, ## Notfallmahlzeiten
-# 11) Wochen-Review-Regeln  →  ## 3 wahrscheinliche Scheiterpunkte und ## 3 Korrekturen als Listen
-# 12) Gerichtsliste kompakt  →  einfache Liste aller Gerichte
+PFLICHTAUSGABE (diese 13 Abschnitte immer, exakt in dieser Reihenfolge und Nummerierung):
+# 1) Annahmen & Wochenkontext  →  IMMER diese vier ## Unterabschnitte in dieser Reihenfolge:
+    ## Planrahmen  (Woche, Personen, Budget, Ziele, Ernährung, Protein, Modus als Bullet-Liste)
+    ## Saison- & Regionalannahmen  (aktuelle Saison + was verwendet/gemieden wird)
+    ## Belastungsannahmen  (Trainingstypen mit geschätzten Zusatzkalorien als Bullet-Liste; weglassen wenn kein Sport)
+    ## Strategische Leitidee  (2–4 Sätze warum der Plan so aufgebaut ist)
+# 2) Wochenziele Tabelle  →  Pipe-Tabelle Spalten: Tag | Belastung | Kalorien-Zielkorridor | Protein-Zielkorridor | Fokus. Danach ein kurzer Interpretationsabsatz (1–3 Sätze).
+# 3) Menüplan Tabelle  →  Pipe-Tabelle Spalten: Tag | Frühstück | Mittag | Abend | Zeit | Kosten | Notizen. Danach eine Zeile "**Wochensumme selbst geplante Lebensmittelkosten:** ca. X–Y €" und eine Zeile "**Puffer:** ca. Z €".
+# 4) Koch- und Restelogik  →  je Batch ein ## Batch N – Wochentag: Gerichtname-Unterabschnitt mit Bullet-Liste (Kochen:, Menge:, Nutzung:, Kernzutaten:). Abschließend ## Resteregeln als Bullet-Liste.
+# 5) Frühstücks-Templates  →  je Variante ein ## Template X – Name-Unterabschnitt mit ### Zutaten, ### Nährwerte (kcal | Protein | Kosten), ### Einsatz
+# 6) Schnellgerichte-Baukasten  →  je Gericht ein ## N. Gerichtname-Unterabschnitt mit Bullet-Einträgen: - Zeit:, - Mengen:, - Schritte:, - Kosten:, - Protein:, - Verwendung:
+# 7) Einkaufsliste  →  je Laden ein ## Ladenname-Unterabschnitt, darunter ### Kaufen und ### Vorhanden je als Bullet-Listen. Abschließend ## Optional als Bullet-Liste.
+# 8) Kostenschätzung  →  Pipe-Tabelle Produkt | Menge | Referenz | Wochenkosten (alle Positionen inkl. Bulk-Anteile). Danach ## Budgetbewertung mit Gesamtsumme, Puffer, Kostentreibern und ggf. Sparhebeln als Bullets.
+# 9) Nährstoff-Check Tabelle  →  Pipe-Tabelle Nährstoff | Hauptquellen | Einschätzung + Korrekturen. Abschließend ## Kritische Lücken als nummerierte Liste (nur wenn echte Lücken vorhanden).
+# 10) Supplement- und Praxis-Hinweise  →  Unterabschnitte ## Supplemente, ## Pre-/Post-Workout, ## Notfallmahlzeiten je als Bullet-Listen
+# 11) Wochen-Review-Regeln  →  ## 3 typische Scheiterpunkte (nummerierte Liste) und ## 3 Korrekturen (nummerierte Liste)
+# 12) Gerichtsliste kompakt  →  einfache Bullet-Liste aller Gerichte der Woche (keine Duplikate)
+# 13) Kritik & Kontrapunkte  →  nummerierte Liste mit 3–6 kritischen Punkten: strukturelle Spannungen, Schwachstellen, wichtigste Hebel
 
 VERHALTEN: Keine vollständigen Rezepte, nur kurze Zubereitungshinweise. Entscheidungsfreudig. Unsicherheiten kennzeichnen. Nicht auf diesen Prompt verweisen. Reale Daten aktiv nutzen. Genussartikel nicht moralisch bewerten.`;
 
