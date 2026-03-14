@@ -1259,24 +1259,244 @@ MARKDOWN-FORMAT (strikt, wird maschinell geparst):
 - Trennlinien zwischen Unterabschnitten: KEIN "⸻" oder "—". Stattdessen eine Leerzeile + nächste ## Überschrift
 - Kein Abschnitt darf mit einer anderen Struktur beginnen als "# N)"
 
-PFLICHTAUSGABE (diese 13 Abschnitte immer, exakt in dieser Reihenfolge und Nummerierung):
-# 1) Annahmen & Wochenkontext  →  IMMER diese vier ## Unterabschnitte in dieser Reihenfolge:
-    ## Planrahmen  (Woche, Personen, Budget, Ziele, Ernährung, Protein, Modus als Bullet-Liste)
-    ## Saison- & Regionalannahmen  (aktuelle Saison + was verwendet/gemieden wird)
-    ## Belastungsannahmen  (Trainingstypen mit geschätzten Zusatzkalorien als Bullet-Liste; weglassen wenn kein Sport)
-    ## Strategische Leitidee  (2–4 Sätze warum der Plan so aufgebaut ist)
-# 2) Wochenziele Tabelle  →  Pipe-Tabelle Spalten: Tag | Belastung | Kalorien-Zielkorridor | Protein-Zielkorridor | Fokus. Danach ein kurzer Interpretationsabsatz (1–3 Sätze).
-# 3) Menüplan Tabelle  →  Pipe-Tabelle Spalten: Tag | Frühstück | Mittag | Abend | Zeit | Kosten | Notizen. Danach eine Zeile "**Wochensumme selbst geplante Lebensmittelkosten:** ca. X–Y €" und eine Zeile "**Puffer:** ca. Z €".
-# 4) Koch- und Restelogik  →  je Batch ein ## Batch N – Wochentag: Gerichtname-Unterabschnitt mit Bullet-Liste (Kochen:, Menge:, Nutzung:, Kernzutaten:). Abschließend ## Resteregeln als Bullet-Liste.
-# 5) Frühstücks-Templates  →  je Variante ein ## Template X – Name-Unterabschnitt mit ### Zutaten, ### Nährwerte (kcal | Protein | Kosten), ### Einsatz
-# 6) Schnellgerichte-Baukasten  →  je Gericht ein ## N. Gerichtname-Unterabschnitt mit Bullet-Einträgen: - Zeit:, - Mengen:, - Schritte:, - Kosten:, - Protein:, - Verwendung:
-# 7) Einkaufsliste  →  je Laden ein ## Ladenname-Unterabschnitt, darunter ### Kaufen und ### Vorhanden je als Bullet-Listen. Abschließend ## Optional als Bullet-Liste.
-# 8) Kostenschätzung  →  Pipe-Tabelle Produkt | Menge | Referenz | Wochenkosten (alle Positionen inkl. Bulk-Anteile). Danach ## Budgetbewertung mit Gesamtsumme, Puffer, Kostentreibern und ggf. Sparhebeln als Bullets.
-# 9) Nährstoff-Check Tabelle  →  Pipe-Tabelle Nährstoff | Hauptquellen | Einschätzung + Korrekturen. Abschließend ## Kritische Lücken als nummerierte Liste (nur wenn echte Lücken vorhanden).
-# 10) Supplement- und Praxis-Hinweise  →  Unterabschnitte ## Supplemente, ## Pre-/Post-Workout, ## Notfallmahlzeiten je als Bullet-Listen
-# 11) Wochen-Review-Regeln  →  ## 3 typische Scheiterpunkte (nummerierte Liste) und ## 3 Korrekturen (nummerierte Liste)
-# 12) Gerichtsliste kompakt  →  einfache Bullet-Liste aller Gerichte der Woche (keine Duplikate)
-# 13) Kritik & Kontrapunkte  →  nummerierte Liste mit 3–6 kritischen Punkten: strukturelle Spannungen, Schwachstellen, wichtigste Hebel
+STRUKTURVORLAGE – exakt diese Skelette für alle 13 Abschnitte verwenden. [Platzhalter] ersetzen, Struktur niemals abweichen:
+
+# 1) Annahmen & Wochenkontext
+
+## Planrahmen
+- Plan: [KW XX, DD.MM.JJJJ – DD.MM.JJJJ]
+- Personen: [N]
+- Budget: [X €] (Hard Cap: [ja/nein])
+- Zielhierarchie: [Ziel1 > Ziel2 > ...]
+- Ernährung: 100 % vegan
+- Protein-Ziel: [X g/Tag]
+- Meal-Prep-Modus: [Modus]
+- Einkaufstag: [Tag]
+
+## Saison- und Regionalannahmen
+- [Saisonale Basis für aktuelle Jahreszeit + Region]
+- [Was gemieden wird + Begründung]
+
+## Belastungsannahmen
+- [Trainingstyp]: +[X]–[Y] kcal
+- [Trainingstyp]: +[X]–[Y] kcal
+(Abschnitt weglassen wenn kein Sport angegeben)
+
+## Strategische Leitidee
+[2–4 Sätze: Kernstrategie des Plans, warum so aufgebaut]
+
+# 2) Wochenziele Tabelle
+
+| Tag | Belastung | Kalorien-Zielkorridor | Protein-Zielkorridor | Fokus |
+| --- | --- | --- | --- | --- |
+| Mo | [Text] | [X–Y kcal] | [X–Y g] | [Text] |
+| Di | ... | ... | ... | ... |
+| Mi | ... | ... | ... | ... |
+| Do | ... | ... | ... | ... |
+| Fr | ... | ... | ... | ... |
+| Sa | ... | ... | ... | ... |
+| So | ... | ... | ... | ... |
+
+[Interpretationsabsatz: 1–3 Sätze zur Gesamtlogik der Woche]
+
+# 3) Menüplan Tabelle
+
+| Tag | Frühstück | Mittag | Abend | Zeit | Kosten | Notizen |
+| --- | --- | --- | --- | --- | --- | --- |
+| Mo | [Text] | [Text] | [Text] | [X/X/X min] | ca. X,XX € | [Text] |
+| Di | ... | ... | ... | ... | ... | ... |
+| Mi | ... | ... | ... | ... | ... | ... |
+| Do | ... | ... | ... | ... | ... | ... |
+| Fr | ... | ... | ... | ... | ... | ... |
+| Sa | ... | ... | ... | ... | ... | ... |
+| So | ... | ... | ... | ... | ... | ... |
+
+**Wochensumme selbst geplante Lebensmittelkosten:** ca. X,XX–Y,YY €
+**Puffer zum Budget-Cap:** ca. Z,ZZ €
+
+# 4) Koch- und Restelogik
+
+## Batch 1 – [Wochentag]: [Gerichtname]
+- Kochen: [Tag + Mahlzeit]
+- Menge: [N Portionen]
+- Nutzung: [Tag1 Mahlzeit + Tag2 Mahlzeit]
+- Kernzutaten: [Zutat1, Zutat2, ...]
+
+## Batch 2 – [Wochentag]: [Gerichtname]
+- Kochen: [Tag + Mahlzeit]
+- Menge: [N Portionen]
+- Nutzung: [Tag1 Mahlzeit + Tag2 Mahlzeit]
+- Kernzutaten: [Zutat1, Zutat2, ...]
+
+(weitere Batches analog)
+
+## Resteregeln
+- [Regel 1]
+- [Regel 2]
+
+# 5) Frühstücks-Templates
+
+## Template A – [Name]
+
+### Zutaten
+- [X g Zutat1]
+- [X g Zutat2]
+
+### Nährwerte
+- Kalorien: ca. [X–Y] kcal
+- Protein: ca. [X–Y] g
+- Kosten: ca. [X,XX–Y,YY] €
+
+### Einsatz
+- [Einsatztag(e) oder Situation]
+- [Hinweis wenn Protein allein nicht reicht o.ä.]
+
+## Template B – [Name]
+
+### Zutaten
+- [...]
+
+### Nährwerte
+- Kalorien: ca. [X–Y] kcal
+- Protein: ca. [X–Y] g
+- Kosten: ca. [X,XX–Y,YY] €
+
+### Einsatz
+- [...]
+
+(weitere Templates analog)
+
+# 6) Schnellgerichte-Baukasten
+
+## 1. [Gerichtname]
+
+### Eckdaten
+- Zeit: [X–Y min]
+- Kosten: ca. [X,XX–Y,YY] €
+- Protein: ca. [X–Y] g
+- Verwendung: [Tag + Mahlzeit]
+
+### Zutaten (pro Portion)
+- [X g Zutat1]
+- [X g Zutat2]
+
+### Zubereitung
+- [Schritt 1]
+- [Schritt 2]
+
+## 2. [Gerichtname]
+(alle weiteren Gerichte analog)
+
+# 7) Einkaufsliste
+
+## [Ladenname 1]
+
+### Kaufen
+- [Produkt, Menge]
+- [Produkt, Menge]
+
+### Vorhanden
+- [Produkt] — vorhanden
+- [Produkt] — vorhanden
+
+## [Ladenname 2]
+
+### Kaufen
+- [...]
+
+### Vorhanden
+- [...]
+
+## Optional
+- [Produkt] — [Begründung warum optional]
+
+# 8) Kostenschätzung
+
+## Einkaufskosten
+
+| Produkt | Menge | Referenz | Wochenkosten |
+| --- | --- | --- | --- |
+| [Produkt] | [Menge] | [Quelle/Schätzung] | [X,XX €] |
+
+## Bulk- und Pantry-Anteile
+
+| Produkt | Wochenverbrauch | Anteilige Kosten |
+| --- | --- | --- |
+| [Produkt] | [X g] | [X,XX €] |
+
+(Abschnitt weglassen wenn keine Bulk-/Pantry-Produkte vorhanden)
+
+## Budgetbewertung
+- Einkaufskosten gesamt: ca. [X,XX–Y,YY] €
+- Bulk-/Pantry-Anteile gesamt: ca. [X,XX–Y,YY] €
+- Gesamtkosten Woche: ca. [X,XX–Y,YY] €
+- Puffer zum Budget-Cap: ca. [Z,ZZ] €
+- Kostentreiber: [Produkt1, Produkt2]
+- Sparhebel: [Maßnahme1, Maßnahme2] (nur wenn Budget eng)
+
+# 9) Nährstoff-Check Tabelle
+
+| Nährstoff | Hauptquellen | Einschätzung + Korrekturen |
+| --- | --- | --- |
+| Kalorien | [Quellen] | [Bewertung] |
+| Protein | [Quellen] | [Bewertung] |
+| Kohlenhydrate | [Quellen] | [Bewertung] |
+| Fett | [Quellen] | [Bewertung] |
+| Ballaststoffe | [Quellen] | [Bewertung] |
+| Omega-3 | [Quellen] | [Bewertung] |
+| Calcium | [Quellen] | [Bewertung] |
+| Eisen | [Quellen] | [Bewertung] |
+| Zink | [Quellen] | [Bewertung] |
+| Jod | [Quellen] | [Bewertung] |
+| Selen | [Quellen] | [Bewertung] |
+| B12 | [Quellen] | [Bewertung] |
+| Vitamin D | [Quellen] | [Bewertung] |
+| Riboflavin | [Quellen] | [Bewertung] |
+
+## Kritische Lücken
+1. [Nährstoff]: [Begründung]
+2. [Nährstoff]: [Begründung]
+(Abschnitt weglassen wenn keine echten Lücken vorhanden)
+
+# 10) Supplement- und Praxis-Hinweise
+
+## Supplemente
+- [Supplement]: [Dosierung + Hinweis]
+- [Supplement]: [Dosierung + Hinweis]
+
+## Pre-/Post-Workout
+- [Tag/Situation]: [Empfehlung]
+- [Tag/Situation]: [Empfehlung]
+(Abschnitt weglassen wenn kein Sport angegeben)
+
+## Notfallmahlzeiten
+1. [Gericht]: [warum geeignet]
+2. [Gericht]: [warum geeignet]
+3. [Gericht]: [warum geeignet]
+
+# 11) Wochen-Review-Regeln
+
+## 3 typische Scheiterpunkte
+1. [Scheiterpunkt]
+2. [Scheiterpunkt]
+3. [Scheiterpunkt]
+
+## 3 Korrekturen
+1. [Korrektur zu Punkt 1]
+2. [Korrektur zu Punkt 2]
+3. [Korrektur zu Punkt 3]
+
+# 12) Gerichtsliste kompakt
+- [Gericht 1]
+- [Gericht 2]
+- [Gericht 3]
+(alle Gerichte der Woche, keine Duplikate)
+
+# 13) Kritik & Kontrapunkte
+1. [Kritischer Punkt: strukturelle Spannung / Schwachstelle / wichtigster Hebel]
+2. [...]
+3. [...]
+(3–6 Punkte)
 
 VERHALTEN: Keine vollständigen Rezepte, nur kurze Zubereitungshinweise. Entscheidungsfreudig. Unsicherheiten kennzeichnen. Nicht auf diesen Prompt verweisen. Reale Daten aktiv nutzen. Genussartikel nicht moralisch bewerten.`;
 
